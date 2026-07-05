@@ -25,6 +25,7 @@
     marginPct: 3,
     cropMode: 'smart',
     quality: 90,
+    copyright: '© Susana Quintal',
     processing: false,
   };
 
@@ -85,6 +86,11 @@
   $('crop-mode').addEventListener('change', e => {
     state.cropMode = e.target.value;
     refreshPreview();
+  });
+
+  $('copyright-text').addEventListener('input', e => {
+    state.copyright = e.target.value;
+    refreshPreviewDebounced();
   });
 
   function bindSlider(id, valId, apply) {
@@ -184,16 +190,38 @@
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bitmap, crop.x, crop.y, crop.width, crop.height, 0, 0, outW, outH);
 
+    const margin = outW * (state.marginPct / 100);
+    const [fx, fy] = POSITIONS[state.position];
+
     if (state.logo) {
       const logoW = outW * (state.sizePct / 100);
       const logoH = logoW * (state.logo.height / state.logo.width);
-      const margin = outW * (state.marginPct / 100);
-      const [fx, fy] = POSITIONS[state.position];
       const x = margin + fx * (outW - logoW - 2 * margin);
       const y = margin + fy * (outH - logoH - 2 * margin);
       ctx.globalAlpha = state.opacityPct / 100;
       ctx.drawImage(state.logo, x, y, logoW, logoH);
       ctx.globalAlpha = 1;
+    }
+
+    const text = state.copyright.trim();
+    if (text) {
+      // opposite corner from the logo so they never collide; if the logo is
+      // dead center (or absent), the text goes to the bottom edge instead
+      let [tx, ty] = state.logo ? [1 - fx, 1 - fy] : [fx, fy];
+      if (state.logo && fx === 0.5 && fy === 0.5) { tx = 0.5; ty = 1; }
+      const fontSize = Math.max(14, Math.round(outW * 0.022));
+      ctx.font = `600 ${fontSize}px -apple-system, "Segoe UI", Roboto, sans-serif`;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = tx === 0 ? 'left' : tx === 1 ? 'right' : 'center';
+      const x = margin + tx * (outW - 2 * margin);
+      const y = margin + fontSize / 2 + ty * (outH - fontSize - 2 * margin);
+      ctx.shadowColor = 'rgba(0,0,0,0.55)';
+      ctx.shadowBlur = fontSize * 0.25;
+      ctx.globalAlpha = state.opacityPct / 100;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(text, x, y);
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
     }
     return canvas;
   }

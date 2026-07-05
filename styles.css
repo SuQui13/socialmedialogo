@@ -1,14 +1,17 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0f1218;
-  --card: #181d26;
-  --card-border: #262d3a;
-  --text: #e8ecf3;
-  --muted: #93a0b4;
-  --accent: #4f8cff;
-  --accent-hover: #6da0ff;
-  --danger: #ff6b6b;
+  /* Brand palette: Midnight Plum, Blackberry Plum, Deep Teal, Mist Teal, Warm Bone, Antique Gold */
+  --bg: #24152D;
+  --card: #2E1C39;
+  --card-border: #4A2F58;
+  --text: #FCFAF8;
+  --muted: #6E98A0;
+  --accent: #D8C29C;
+  --accent-hover: #E8D8B8;
+  --accent-ink: #24152D;
+  --teal: #2E5F66;
+  --danger: #ff7d7d;
   --radius: 14px;
 }
 
@@ -56,7 +59,7 @@ main {
   width: 28px; height: 28px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   font-size: 0.9rem;
   flex-shrink: 0;
 }
@@ -78,7 +81,7 @@ main {
 }
 .dropzone:hover, .dropzone.dragover {
   border-color: var(--accent);
-  background: rgba(79, 140, 255, 0.06);
+  background: rgba(216, 194, 156, 0.06);
 }
 .hint { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
 
@@ -92,7 +95,7 @@ main {
   max-height: 90px;
   max-width: 240px;
   background:
-    repeating-conic-gradient(#2a3140 0% 25%, #1d2330 0% 50%) 0 0 / 16px 16px;
+    repeating-conic-gradient(#3A2648 0% 25%, #2B1A36 0% 50%) 0 0 / 16px 16px;
   border-radius: 8px;
   padding: 8px;
 }
@@ -111,13 +114,17 @@ main {
 }
 .settings-grid .val { color: var(--text); float: right; }
 input[type="range"] { accent-color: var(--accent); width: 100%; }
-select {
+select, input[type="text"] {
   background: var(--bg);
   color: var(--text);
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 8px;
   font-size: 0.9rem;
+}
+select:focus, input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .pos-grid {
@@ -221,7 +228,7 @@ select {
 
 .btn-primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   border: none;
   border-radius: 10px;
   padding: 13px 26px;
@@ -257,7 +264,7 @@ select {
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--teal), var(--muted));
   border-radius: 7px;
   transition: width .2s;
 }
