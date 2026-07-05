@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Media Logo Batcher</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>">
+</head>
+<body>
+<header>
+  <h1>📸 Social Media Logo Batcher</h1>
+  <p class="tagline">Upload photos, apply your logo, export in 4:5, 16:9 and 9:16 — all in your browser. Nothing is uploaded to any server.</p>
+</header>
+
+<main>
+  <!-- STEP 1: LOGO -->
+  <section class="card" id="logo-section">
+    <h2><span class="step">1</span> Your logo</h2>
+    <div class="dropzone" id="logo-drop">
+      <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+      <div class="dz-inner" id="logo-dz-inner">
+        <p><strong>Drop your logo here</strong> or click to choose</p>
+        <p class="hint">PNG with transparent background works best</p>
+      </div>
+      <div class="logo-preview hidden" id="logo-preview">
+        <img id="logo-img-preview" alt="Logo preview">
+        <button type="button" class="btn-small" id="logo-remove">Remove</button>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <label>Position
+        <div class="pos-grid" id="pos-grid">
+          <button type="button" data-pos="tl" title="Top left"></button>
+          <button type="button" data-pos="tc" title="Top center"></button>
+          <button type="button" data-pos="tr" title="Top right"></button>
+          <button type="button" data-pos="ml" title="Middle left"></button>
+          <button type="button" data-pos="mc" title="Center"></button>
+          <button type="button" data-pos="mr" title="Middle right"></button>
+          <button type="button" data-pos="bl" title="Bottom left"></button>
+          <button type="button" data-pos="bc" title="Bottom center"></button>
+          <button type="button" data-pos="br" class="active" title="Bottom right"></button>
+        </div>
+      </label>
+      <label>Logo size <span class="val" id="size-val">18%</span>
+        <input type="range" id="logo-size" min="5" max="50" value="18">
+      </label>
+      <label>Opacity <span class="val" id="opacity-val">100%</span>
+        <input type="range" id="logo-opacity" min="10" max="100" value="100">
+      </label>
+      <label>Margin <span class="val" id="margin-val">3%</span>
+        <input type="range" id="logo-margin" min="0" max="10" value="3">
+      </label>
+    </div>
+  </section>
+
+  <!-- STEP 2: PHOTOS -->
+  <section class="card" id="photos-section">
+    <h2><span class="step">2</span> Your photos <span class="counter" id="photo-counter">0 / 150</span></h2>
+    <div class="dropzone" id="photo-drop">
+      <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple hidden>
+      <div class="dz-inner">
+        <p><strong>Drop up to 150 photos here</strong> or click to choose</p>
+        <p class="hint">JPEG, PNG or WebP</p>
+      </div>
+    </div>
+    <div class="thumb-grid" id="thumb-grid"></div>
+    <button type="button" class="btn-small hidden" id="clear-photos">Clear all photos</button>
+  </section>
+
+  <!-- STEP 3: OUTPUT -->
+  <section class="card" id="output-section">
+    <h2><span class="step">3</span> Output formats</h2>
+    <div class="ratio-row">
+      <label class="ratio-check">
+        <input type="checkbox" id="ratio-45" checked>
+        <span class="ratio-box r45"></span>
+        <span>4:5<br><small>Feed post · 1080×1350</small></span>
+      </label>
+      <label class="ratio-check">
+        <input type="checkbox" id="ratio-169" checked>
+        <span class="ratio-box r169"></span>
+        <span>16:9<br><small>Landscape · 1920×1080</small></span>
+      </label>
+      <label class="ratio-check">
+        <input type="checkbox" id="ratio-916" checked>
+        <span class="ratio-box r916"></span>
+        <span>9:16<br><small>Story / Reel · 1080×1920</small></span>
+      </label>
+    </div>
+
+    <div class="settings-grid">
+      <label>Smart cropping
+        <select id="crop-mode">
+          <option value="smart" selected>Smart (detect faces &amp; subject)</option>
+          <option value="center">Center crop</option>
+        </select>
+      </label>
+      <label>JPEG quality <span class="val" id="quality-val">90%</span>
+        <input type="range" id="jpeg-quality" min="60" max="100" value="90">
+      </label>
+    </div>
+  </section>
+
+  <!-- STEP 4: PREVIEW + PROCESS -->
+  <section class="card" id="process-section">
+    <h2><span class="step">4</span> Preview &amp; export</h2>
+    <div class="preview-row" id="preview-row">
+      <p class="hint">Add photos above — a live preview of the first photo appears here.</p>
+    </div>
+    <div class="process-row">
+      <button type="button" class="btn-primary" id="process-btn" disabled>Process &amp; download ZIP</button>
+      <div class="progress hidden" id="progress-wrap">
+        <div class="progress-bar" id="progress-bar"></div>
+        <span class="progress-label" id="progress-label"></span>
+      </div>
+    </div>
+    <p class="hint" id="status-line"></p>
+  </section>
+</main>
+
+<footer>
+  <p>Everything runs locally in your browser — your photos and logo are never uploaded anywhere.</p>
+</footer>
+
+<script src="zip.js"></script>
+<script src="smartcrop.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
