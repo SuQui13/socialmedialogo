@@ -18,18 +18,135 @@
   const state = {
     photos: [],      // { file, thumbUrl }
     logo: null,      // ImageBitmap
-    logoUrl: null,
+    logoDataUrl: null,
     position: 'br',
     sizePct: 18,
     opacityPct: 100,
     marginPct: 3,
     cropMode: 'smart',
     quality: 90,
-    copyright: '© Susana Quintal',
+    copyright: '',
     processing: false,
   };
 
   const $ = id => document.getElementById(id);
+
+  // ---------- local persistence (browser storage; may be unavailable) ----------
+  const store = {
+    get(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v === null ? fallback : JSON.parse(v);
+      } catch { return fallback; }
+    },
+    set(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+      catch { return false; }
+    },
+  };
+
+  const MAX_SAVED_LOGOS = 8;
+  const MAX_SAVED_LOGO_BYTES = 1500000; // data-URL length guard for the storage quota
+  let savedLogos = store.get('smlb.logos', []); // [{ name, dataUrl }]
+
+  function persistLogos() {
+    if (!store.set('smlb.logos', savedLogos)) {
+      setStatus('Could not save the logo for next time (browser storage is full or blocked) — it still works for this session.', true);
+    }
+  }
+
+  function renderSavedLogos() {
+    const row = $('saved-logo-row');
+    row.innerHTML = '';
+    $('saved-logos').classList.toggle('hidden', savedLogos.length === 0);
+    for (const entry of savedLogos) {
+      const div = document.createElement('div');
+      div.className = 'saved-logo' + (entry.dataUrl === state.logoDataUrl ? ' active' : '');
+      div.title = entry.name;
+      const img = document.createElement('img');
+      img.src = entry.dataUrl;
+      img.alt = entry.name;
+      const rm = document.createElement('button');
+      rm.className = 'rm';
+      rm.textContent = '✕';
+      rm.title = 'Forget this logo';
+      rm.addEventListener('click', e => {
+        e.stopPropagation();
+        savedLogos = savedLogos.filter(l => l !== entry);
+        persistLogos();
+        renderSavedLogos();
+      });
+      div.addEventListener('click', () => useSavedLogo(entry));
+      div.append(img, rm);
+      row.appendChild(div);
+    }
+  }
+
+  function saveLogoToLibrary(name, dataUrl) {
+    if (dataUrl.length > MAX_SAVED_LOGO_BYTES) {
+      setStatus('This logo file is too large to remember for next time — it still works for this session.', false);
+      return;
+    }
+    savedLogos = [{ name, dataUrl }, ...savedLogos.filter(l => l.dataUrl !== dataUrl)]
+      .slice(0, MAX_SAVED_LOGOS);
+    persistLogos();
+    renderSavedLogos();
+  }
+
+  async function useSavedLogo(entry) {
+    try {
+      const blob = await (await fetch(entry.dataUrl)).blob();
+      adoptLogo(await createImageBitmap(blob), entry.dataUrl);
+    } catch {
+      setStatus('Could not load that saved logo — please upload it again.', true);
+    }
+    renderSavedLogos();
+  }
+
+  function saveSettings() {
+    store.set('smlb.settings', {
+      position: state.position,
+      sizePct: state.sizePct,
+      opacityPct: state.opacityPct,
+      marginPct: state.marginPct,
+      cropMode: state.cropMode,
+      quality: state.quality,
+      copyright: state.copyright,
+      ratios: selectedRatios(),
+    });
+  }
+
+  function restoreSettings() {
+    const s = store.get('smlb.settings', null);
+    if (!s) return;
+    state.position = s.position ?? state.position;
+    state.sizePct = s.sizePct ?? state.sizePct;
+    state.opacityPct = s.opacityPct ?? state.opacityPct;
+    state.marginPct = s.marginPct ?? state.marginPct;
+    state.cropMode = s.cropMode ?? state.cropMode;
+    state.quality = s.quality ?? state.quality;
+    state.copyright = s.copyright ?? state.copyright;
+
+    document.querySelector('#pos-grid .active')?.classList.remove('active');
+    document.querySelector(`#pos-grid [data-pos="${state.position}"]`)?.classList.add('active');
+    const sliders = [
+      ['logo-size', 'size-val', state.sizePct],
+      ['logo-opacity', 'opacity-val', state.opacityPct],
+      ['logo-margin', 'margin-val', state.marginPct],
+      ['jpeg-quality', 'quality-val', state.quality],
+    ];
+    for (const [id, valId, v] of sliders) {
+      $(id).value = v;
+      $(valId).textContent = v + '%';
+    }
+    $('crop-mode').value = state.cropMode;
+    $('copyright-text').value = state.copyright;
+    if (Array.isArray(s.ratios)) {
+      for (const key of Object.keys(RATIOS)) {
+        $(RATIOS[key].checkbox).checked = s.ratios.includes(key);
+      }
+    }
+  }
 
   // ---------- logo ----------
   const logoDrop = $('logo-drop');
@@ -40,15 +157,29 @@
   bindDrop(logoDrop, files => { if (files[0]) setLogo(files[0]); });
 
   async function setLogo(file) {
+    let bitmap;
     try {
-      state.logo = await fileToBitmap(file);
+      bitmap = await fileToBitmap(file);
     } catch {
       setStatus(`Could not read logo "${file.name}" — please use a PNG, JPEG or WebP.`, true);
       return;
     }
-    if (state.logoUrl) URL.revokeObjectURL(state.logoUrl);
-    state.logoUrl = URL.createObjectURL(file);
-    $('logo-img-preview').src = state.logoUrl;
+    const dataUrl = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+    adoptLogo(bitmap, dataUrl);
+    saveLogoToLibrary(file.name, dataUrl);
+  }
+
+  function adoptLogo(bitmap, dataUrl) {
+    if (state.logo) state.logo.close();
+    state.logo = bitmap;
+    state.logoDataUrl = dataUrl;
+    store.set('smlb.lastLogo', dataUrl);
+    $('logo-img-preview').src = dataUrl;
     $('logo-dz-inner').classList.add('hidden');
     $('logo-preview').classList.remove('hidden');
     refreshPreview();
@@ -59,11 +190,12 @@
     e.stopPropagation();
     if (state.logo) state.logo.close();
     state.logo = null;
-    if (state.logoUrl) URL.revokeObjectURL(state.logoUrl);
-    state.logoUrl = null;
+    state.logoDataUrl = null;
+    store.set('smlb.lastLogo', null);
     logoInput.value = '';
     $('logo-dz-inner').classList.remove('hidden');
     $('logo-preview').classList.add('hidden');
+    renderSavedLogos();
     refreshPreview();
     updateProcessBtn();
   });
@@ -74,6 +206,7 @@
       document.querySelector('#pos-grid .active')?.classList.remove('active');
       btn.classList.add('active');
       state.position = btn.dataset.pos;
+      saveSettings();
       refreshPreview();
     });
   });
@@ -85,11 +218,13 @@
 
   $('crop-mode').addEventListener('change', e => {
     state.cropMode = e.target.value;
+    saveSettings();
     refreshPreview();
   });
 
   $('copyright-text').addEventListener('input', e => {
     state.copyright = e.target.value;
+    saveSettings();
     refreshPreviewDebounced();
   });
 
@@ -98,6 +233,7 @@
     el.addEventListener('input', () => {
       apply(Number(el.value));
       $(valId).textContent = el.value + '%';
+      saveSettings();
       refreshPreviewDebounced();
     });
   }
@@ -167,6 +303,7 @@
   // ---------- ratios ----------
   for (const key of Object.keys(RATIOS)) {
     $(RATIOS[key].checkbox).addEventListener('change', () => {
+      saveSettings();
       refreshPreview();
       updateProcessBtn();
     });
@@ -370,6 +507,14 @@
     });
   }
 
+  // ---------- startup: restore saved settings and last-used logo ----------
+  restoreSettings();
+  renderSavedLogos();
+  const lastLogo = store.get('smlb.lastLogo', null);
+  if (lastLogo) {
+    const entry = savedLogos.find(l => l.dataUrl === lastLogo) || { name: 'logo', dataUrl: lastLogo };
+    useSavedLogo(entry);
+  }
   updateCounter();
   updateProcessBtn();
 })();

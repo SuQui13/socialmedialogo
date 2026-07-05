@@ -29,6 +29,11 @@
       </div>
     </div>
 
+    <div class="saved-logos hidden" id="saved-logos">
+      <p class="hint">Your saved logos — click one to use it:</p>
+      <div class="saved-logo-row" id="saved-logo-row"></div>
+    </div>
+
     <div class="settings-grid">
       <label>Position
         <div class="pos-grid" id="pos-grid">
@@ -53,8 +58,8 @@
         <input type="range" id="logo-margin" min="0" max="10" value="3">
       </label>
       <label>Copyright text
-        <input type="text" id="copyright-text" value="© Susana Quintal" placeholder="© Your name">
-        <span class="hint">Stamped on each photo, opposite the logo. Leave empty to skip.</span>
+        <input type="text" id="copyright-text" value="" placeholder="© Your name">
+        <span class="hint">Optional — if filled in, it's stamped on each photo opposite the logo.</span>
       </label>
     </div>
   </section>
