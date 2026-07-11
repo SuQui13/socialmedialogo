@@ -21,6 +21,7 @@
     logoDataUrl: null,
     frames: {},      // ratioKey -> { bitmap, dataUrl } full-cover overlays
     lastZipUrl: null,
+    lastZipBlob: null,
     position: 'br',
     sizePct: 18,
     opacityPct: 100,
@@ -550,6 +551,7 @@
       const name = `social-media-photos-${new Date().toISOString().slice(0, 10)}.zip`;
       if (state.lastZipUrl) URL.revokeObjectURL(state.lastZipUrl);
       state.lastZipUrl = URL.createObjectURL(archive);
+      state.lastZipBlob = archive;
 
       // backup button in case the automatic download is blocked by the browser
       const dl = $('manual-download');
@@ -574,6 +576,31 @@
       state.processing = false;
       updateProcessBtn();
       $('progress-wrap').classList.add('hidden');
+    }
+  });
+
+  // When the browser supports it, the Save ZIP button opens a real
+  // "Save as" dialog so the user can choose the folder; otherwise it
+  // behaves as a normal download link.
+  $('manual-download').addEventListener('click', async e => {
+    if (!window.showSaveFilePicker || !state.lastZipBlob) return;
+    e.preventDefault();
+    const name = $('manual-download').download;
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: name,
+        types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(state.lastZipBlob);
+      await writable.close();
+      setStatus(`Saved ${name} to the folder you chose.`);
+    } catch (err) {
+      if (err.name === 'AbortError') return; // user closed the dialog
+      const a = document.createElement('a');
+      a.href = state.lastZipUrl;
+      a.download = name;
+      a.click();
     }
   });
 
