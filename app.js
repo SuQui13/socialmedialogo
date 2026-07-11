@@ -17,8 +17,10 @@
 
   const state = {
     photos: [],      // { file, thumbUrl }
-    logo: null,      // ImageBitmap
+    logo: null,      // ImageBitmap (plain corner logo)
     logoDataUrl: null,
+    frames: {},      // ratioKey -> { bitmap, dataUrl } full-cover overlays
+    lastZipUrl: null,
     position: 'br',
     sizePct: 18,
     opacityPct: 100,
@@ -60,8 +62,10 @@
     row.innerHTML = '';
     $('saved-logos').classList.toggle('hidden', savedLogos.length === 0);
     for (const entry of savedLogos) {
+      const inUse = entry.dataUrl === state.logoDataUrl ||
+        Object.values(state.frames).some(f => f.dataUrl === entry.dataUrl);
       const div = document.createElement('div');
-      div.className = 'saved-logo' + (entry.dataUrl === state.logoDataUrl ? ' active' : '');
+      div.className = 'saved-logo' + (inUse ? ' active' : '');
       div.title = entry.name;
       const img = document.createElement('img');
       img.src = entry.dataUrl;
@@ -96,11 +100,10 @@
   async function useSavedLogo(entry) {
     try {
       const blob = await (await fetch(entry.dataUrl)).blob();
-      adoptLogo(await createImageBitmap(blob), entry.dataUrl);
+      applyBrandImage(await createImageBitmap(blob), entry.dataUrl);
     } catch {
       setStatus('Could not load that saved logo — please upload it again.', true);
     }
-    renderSavedLogos();
   }
 
   function saveSettings() {
@@ -152,16 +155,30 @@
   const logoDrop = $('logo-drop');
   const logoInput = $('logo-input');
 
-  logoDrop.addEventListener('click', () => { if (!state.logo) logoInput.click(); });
-  logoInput.addEventListener('change', () => { if (logoInput.files[0]) setLogo(logoInput.files[0]); });
-  bindDrop(logoDrop, files => { if (files[0]) setLogo(files[0]); });
+  logoDrop.addEventListener('click', () => logoInput.click());
+  logoInput.addEventListener('change', () => {
+    for (const f of logoInput.files) setLogo(f);
+    logoInput.value = '';
+  });
+  bindDrop(logoDrop, files => { for (const f of files) setLogo(f); });
+
+  /** A "frame" is an image shaped like one of the output ratios and reasonably
+   *  large — it gets stretched over the whole photo instead of placed as a logo. */
+  function classifyFrame(bitmap) {
+    if (bitmap.width < 500 || bitmap.height < 500) return null;
+    for (const key of Object.keys(RATIOS)) {
+      const r = RATIOS[key].ratio;
+      if (Math.abs(bitmap.width / bitmap.height - r) / r < 0.03) return key;
+    }
+    return null;
+  }
 
   async function setLogo(file) {
     let bitmap;
     try {
       bitmap = await fileToBitmap(file);
     } catch {
-      setStatus(`Could not read logo "${file.name}" — please use a PNG, JPEG or WebP.`, true);
+      setStatus(`Could not read "${file.name}" — please use a PNG, JPEG or WebP.`, true);
       return;
     }
     const dataUrl = await new Promise((res, rej) => {
@@ -170,35 +187,92 @@
       reader.onerror = rej;
       reader.readAsDataURL(file);
     });
-    adoptLogo(bitmap, dataUrl);
+    applyBrandImage(bitmap, dataUrl);
     saveLogoToLibrary(file.name, dataUrl);
   }
 
-  function adoptLogo(bitmap, dataUrl) {
-    if (state.logo) state.logo.close();
-    state.logo = bitmap;
-    state.logoDataUrl = dataUrl;
-    store.set('smlb.lastLogo', dataUrl);
-    $('logo-img-preview').src = dataUrl;
-    $('logo-dz-inner').classList.add('hidden');
-    $('logo-preview').classList.remove('hidden');
+  function applyBrandImage(bitmap, dataUrl) {
+    const frameKey = classifyFrame(bitmap);
+    if (frameKey) {
+      state.frames[frameKey]?.bitmap.close();
+      state.frames[frameKey] = { bitmap, dataUrl };
+      persistFrames();
+      setStatus(`Recognized a ${frameKey.replace('x', ':')} frame — it will cover the whole ${frameKey.replace('x', ':')} photo.`);
+    } else {
+      if (state.logo) state.logo.close();
+      state.logo = bitmap;
+      state.logoDataUrl = dataUrl;
+      store.set('smlb.lastLogo', dataUrl);
+    }
+    renderActiveLogos();
+    renderSavedLogos();
     refreshPreview();
     updateProcessBtn();
   }
 
-  $('logo-remove').addEventListener('click', e => {
-    e.stopPropagation();
-    if (state.logo) state.logo.close();
-    state.logo = null;
-    state.logoDataUrl = null;
-    store.set('smlb.lastLogo', null);
-    logoInput.value = '';
-    $('logo-dz-inner').classList.remove('hidden');
-    $('logo-preview').classList.add('hidden');
-    renderSavedLogos();
-    refreshPreview();
-    updateProcessBtn();
-  });
+  function persistFrames() {
+    const data = {};
+    for (const key of Object.keys(state.frames)) data[key] = state.frames[key].dataUrl;
+    if (!store.set('smlb.frames', data)) {
+      setStatus('Could not save the frame for next time (browser storage is full or blocked) — it still works for this session.', true);
+    }
+  }
+
+  function renderActiveLogos() {
+    const box = $('logo-preview');
+    box.innerHTML = '';
+    const items = [];
+    for (const key of Object.keys(RATIOS)) {
+      if (!state.frames[key]) continue;
+      items.push({
+        label: `${key.replace('x', ':')} frame`,
+        dataUrl: state.frames[key].dataUrl,
+        remove: () => {
+          state.frames[key].bitmap.close();
+          delete state.frames[key];
+          persistFrames();
+        },
+      });
+    }
+    if (state.logo) {
+      items.push({
+        label: 'Logo',
+        dataUrl: state.logoDataUrl,
+        remove: () => {
+          state.logo.close();
+          state.logo = null;
+          state.logoDataUrl = null;
+          store.set('smlb.lastLogo', null);
+        },
+      });
+    }
+    box.classList.toggle('hidden', items.length === 0);
+    $('frame-hint').classList.toggle('hidden', !items.some(i => i.label.includes('frame')));
+    for (const it of items) {
+      const chip = document.createElement('div');
+      chip.className = 'logo-chip';
+      chip.addEventListener('click', e => e.stopPropagation());
+      const img = document.createElement('img');
+      img.src = it.dataUrl;
+      img.alt = it.label;
+      const label = document.createElement('p');
+      label.textContent = it.label;
+      const rm = document.createElement('button');
+      rm.className = 'rm';
+      rm.textContent = '✕';
+      rm.title = 'Remove';
+      rm.addEventListener('click', e => {
+        e.stopPropagation();
+        it.remove();
+        renderActiveLogos();
+        renderSavedLogos();
+        refreshPreview();
+        updateProcessBtn();
+      });
+      chip.append(img, label, rm);
+      box.appendChild(chip);
+    }
+  }
 
   // ---------- logo settings ----------
   document.querySelectorAll('#pos-grid button').forEach(btn => {
@@ -248,6 +322,10 @@
 
   function addPhotos(files) {
     const images = files.filter(f => /^image\/(jpeg|png|webp)$/.test(f.type));
+    const unsupported = files.length - images.length;
+    if (unsupported > 0) {
+      setStatus(`${unsupported} file${unsupported === 1 ? ' was' : 's were'} not added — only JPEG, PNG and WebP work. iPhone HEIC photos need to be exported/converted to JPEG first.`, true);
+    }
     const room = MAX_PHOTOS - state.photos.length;
     if (images.length > room) {
       setStatus(`Only ${room} more photo${room === 1 ? '' : 's'} fit (max ${MAX_PHOTOS}) — the rest were skipped.`, true);
@@ -330,7 +408,10 @@
     const margin = outW * (state.marginPct / 100);
     const [fx, fy] = POSITIONS[state.position];
 
-    if (state.logo) {
+    if (state.frames[ratioKey]) {
+      // full-cover frame: stretched over the whole photo, exactly as designed
+      ctx.drawImage(state.frames[ratioKey].bitmap, 0, 0, outW, outH);
+    } else if (state.logo) {
       const logoW = outW * (state.sizePct / 100);
       const logoH = logoW * (state.logo.height / state.logo.width);
       const x = margin + fx * (outW - logoW - 2 * margin);
@@ -414,8 +495,13 @@
   const processBtn = $('process-btn');
 
   function updateProcessBtn() {
-    processBtn.disabled = state.processing ||
-      state.photos.length === 0 || selectedRatios().length === 0;
+    const noPhotos = state.photos.length === 0;
+    const noRatios = selectedRatios().length === 0;
+    processBtn.disabled = state.processing || noPhotos || noRatios;
+    $('btn-hint').textContent =
+      state.processing ? '' :
+      noPhotos ? 'Add at least one photo in step 2 to enable the button.' :
+      noRatios ? 'Tick at least one format in step 3 to enable the button.' : '';
   }
 
   processBtn.addEventListener('click', async () => {
@@ -423,6 +509,7 @@
     state.processing = true;
     updateProcessBtn();
     $('progress-wrap').classList.remove('hidden');
+    $('manual-download').classList.add('hidden');
     setStatus('');
 
     const ratios = selectedRatios();
@@ -460,14 +547,24 @@
       }
 
       const archive = zip.finalize();
+      const name = `social-media-photos-${new Date().toISOString().slice(0, 10)}.zip`;
+      if (state.lastZipUrl) URL.revokeObjectURL(state.lastZipUrl);
+      state.lastZipUrl = URL.createObjectURL(archive);
+
+      // backup button in case the automatic download is blocked by the browser
+      const dl = $('manual-download');
+      dl.href = state.lastZipUrl;
+      dl.download = name;
+      dl.textContent = `⬇ Save ZIP (${(archive.size / 1e6).toFixed(1)} MB)`;
+      dl.classList.remove('hidden');
+
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(archive);
-      a.download = `social-media-photos-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.href = state.lastZipUrl;
+      a.download = name;
       a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 
       const okCount = total - failed.length * ratios.length;
-      let msg = `Done! ${okCount} image${okCount === 1 ? '' : 's'} exported to the ZIP.`;
+      let msg = `Done! ${okCount} image${okCount === 1 ? '' : 's'} exported. If no download started, click the "Save ZIP" button.`;
       if (failed.length) msg += ` Skipped ${failed.length} unreadable photo(s): ${failed.join(', ')}`;
       setStatus(msg, failed.length > 0);
     } catch (err) {
@@ -507,14 +604,30 @@
     });
   }
 
-  // ---------- startup: restore saved settings and last-used logo ----------
+  // ---------- startup: restore saved settings, frames and last-used logo ----------
   restoreSettings();
   renderSavedLogos();
-  const lastLogo = store.get('smlb.lastLogo', null);
-  if (lastLogo) {
-    const entry = savedLogos.find(l => l.dataUrl === lastLogo) || { name: 'logo', dataUrl: lastLogo };
-    useSavedLogo(entry);
-  }
+  (async () => {
+    const savedFrames = store.get('smlb.frames', {});
+    for (const key of Object.keys(RATIOS)) {
+      if (!savedFrames[key]) continue;
+      try {
+        const blob = await (await fetch(savedFrames[key])).blob();
+        state.frames[key] = { bitmap: await createImageBitmap(blob), dataUrl: savedFrames[key] };
+      } catch { /* unreadable stored frame — skip it */ }
+    }
+    const lastLogo = store.get('smlb.lastLogo', null);
+    if (lastLogo) {
+      try {
+        const blob = await (await fetch(lastLogo)).blob();
+        state.logo = await createImageBitmap(blob);
+        state.logoDataUrl = lastLogo;
+      } catch { /* unreadable stored logo — skip it */ }
+    }
+    renderActiveLogos();
+    renderSavedLogos();
+    refreshPreview();
+  })();
   updateCounter();
   updateProcessBtn();
 })();

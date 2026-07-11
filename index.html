@@ -18,16 +18,14 @@
   <section class="card" id="logo-section">
     <h2><span class="step">1</span> Your logo</h2>
     <div class="dropzone" id="logo-drop">
-      <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+      <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden>
       <div class="dz-inner" id="logo-dz-inner">
-        <p><strong>Drop your logo here</strong> or click to choose</p>
-        <p class="hint">PNG with transparent background works best</p>
+        <p><strong>Drop your logo or frame here</strong> or click to choose</p>
+        <p class="hint">PNG with transparency works best. A transparent image shaped like 4:5, 16:9 or 9:16 is recognized as a full frame and stretched over the whole photo.</p>
       </div>
-      <div class="logo-preview hidden" id="logo-preview">
-        <img id="logo-img-preview" alt="Logo preview">
-        <button type="button" class="btn-small" id="logo-remove">Remove</button>
-      </div>
+      <div class="logo-preview hidden" id="logo-preview"></div>
     </div>
+    <p class="hint hidden" id="frame-hint">Frames cover the whole photo exactly as designed. The position, size, opacity and margin controls below only apply to a plain logo.</p>
 
     <div class="saved-logos hidden" id="saved-logos">
       <p class="hint">Your saved logos — click one to use it:</p>
@@ -120,11 +118,13 @@
     </div>
     <div class="process-row">
       <button type="button" class="btn-primary" id="process-btn" disabled>Process &amp; download ZIP</button>
+      <a class="btn-primary hidden" id="manual-download" download>⬇ Save ZIP</a>
       <div class="progress hidden" id="progress-wrap">
         <div class="progress-bar" id="progress-bar"></div>
         <span class="progress-label" id="progress-label"></span>
       </div>
     </div>
+    <p class="hint" id="btn-hint"></p>
     <p class="hint" id="status-line"></p>
   </section>
 </main>
