@@ -581,9 +581,15 @@
 
   // When the browser supports it, the Save ZIP button opens a real
   // "Save as" dialog so the user can choose the folder; otherwise it
-  // behaves as a normal download link.
+  // behaves as a normal download link. Embedded pages (e.g. the app
+  // rendered inside another site) never get the dialog: the blocked
+  // picker call would consume the click's user activation and the
+  // fallback download would then be silently dropped.
+  const isEmbedded = (() => {
+    try { return window.self !== window.top; } catch { return true; }
+  })();
   $('manual-download').addEventListener('click', async e => {
-    if (!window.showSaveFilePicker || !state.lastZipBlob) return;
+    if (isEmbedded || !window.showSaveFilePicker || !state.lastZipBlob) return;
     e.preventDefault();
     const name = $('manual-download').download;
     try {
