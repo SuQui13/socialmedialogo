@@ -6,6 +6,7 @@ A small web app that prepares your photos for social media:
 - **Add your logo** — choose position, size, opacity and margin
 - **Or use frame overlays** — upload a transparent PNG shaped like 4:5, 16:9 or 9:16 and the app recognizes it as a full frame, stretching it over every photo so your logo lands in exactly the same designed spot
 - **Saved in your browser** — logos, frames and settings are remembered for your next visit
+- **Slideshow video** — turn the branded photos into an MP4 (9:16 for Reels, or 4:5 / 16:9) with a crossfade, ready to upload to Instagram
 - **Export in social media ratios**: 4:5 (feed, 1080×1350), 16:9 (landscape, 1920×1080) and 9:16 (story/reel, 1080×1920)
 - **Smart cropping** — the app detects faces and the main subject of each photo so the crop keeps them in frame (with a simple center-crop option too)
 - **One ZIP download** with all processed images, organized in a folder per ratio

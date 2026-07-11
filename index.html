@@ -133,6 +133,36 @@
     <p class="hint" id="btn-hint"></p>
     <p class="hint" id="status-line"></p>
   </section>
+
+  <!-- STEP 5: SLIDESHOW VIDEO -->
+  <section class="card" id="video-section">
+    <h2><span class="step">5</span> Slideshow video <span class="counter">optional</span></h2>
+    <p class="hint">Turns all your branded photos into one video — great for Reels. Recording happens live, so it takes as long as the video lasts; keep this tab visible while it records.</p>
+    <div class="settings-grid">
+      <label>Video format
+        <select id="video-ratio">
+          <option value="9x16" selected>9:16 — Reel / Story</option>
+          <option value="4x5">4:5 — Feed</option>
+          <option value="16x9">16:9 — Landscape</option>
+        </select>
+      </label>
+      <label>Seconds per photo <span class="val" id="video-secs-val">2.5s</span>
+        <input type="range" id="video-secs" min="1" max="6" step="0.5" value="2.5">
+      </label>
+      <label>Transition
+        <select id="video-fade">
+          <option value="fade" selected>Crossfade</option>
+          <option value="cut">Instant cut</option>
+        </select>
+      </label>
+    </div>
+    <div class="process-row">
+      <button type="button" class="btn-primary" id="video-btn" disabled>Create video</button>
+      <a class="btn-primary hidden" id="video-download" download>⬇ Save video</a>
+    </div>
+    <p class="hint" id="video-length"></p>
+    <p class="hint" id="video-status"></p>
+  </section>
 </main>
 
 <footer>

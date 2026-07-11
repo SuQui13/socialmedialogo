@@ -31,6 +31,11 @@
     format: 'jpeg',
     copyright: '',
     processing: false,
+    videoRatio: '9x16',
+    videoSeconds: 2.5,
+    videoFade: true,
+    videoRecording: false,
+    lastVideoUrl: null,
   };
 
   const $ = id => document.getElementById(id);
@@ -119,6 +124,9 @@
       format: state.format,
       copyright: state.copyright,
       ratios: selectedRatios(),
+      videoRatio: state.videoRatio,
+      videoSeconds: state.videoSeconds,
+      videoFade: state.videoFade,
     });
   }
 
@@ -146,10 +154,18 @@
       $(id).value = v;
       $(valId).textContent = v + '%';
     }
+    state.videoRatio = s.videoRatio ?? state.videoRatio;
+    state.videoSeconds = s.videoSeconds ?? state.videoSeconds;
+    state.videoFade = s.videoFade ?? state.videoFade;
+
     $('crop-mode').value = state.cropMode;
     $('out-format').value = state.format;
     $('jpeg-quality').disabled = state.format === 'png';
     $('copyright-text').value = state.copyright;
+    $('video-ratio').value = state.videoRatio;
+    $('video-secs').value = state.videoSeconds;
+    $('video-secs-val').textContent = state.videoSeconds + 's';
+    $('video-fade').value = state.videoFade ? 'fade' : 'cut';
     if (Array.isArray(s.ratios)) {
       for (const key of Object.keys(RATIOS)) {
         $(RATIOS[key].checkbox).checked = s.ratios.includes(key);
@@ -388,6 +404,7 @@
   function updateCounter() {
     $('photo-counter').textContent = `${state.photos.length} / ${MAX_PHOTOS}`;
     $('clear-photos').classList.toggle('hidden', state.photos.length === 0);
+    updateVideoUi();
   }
 
   // ---------- ratios ----------
@@ -510,6 +527,7 @@
     const noPhotos = state.photos.length === 0;
     const noRatios = selectedRatios().length === 0;
     processBtn.disabled = state.processing || noPhotos || noRatios;
+    updateVideoUi();
     $('btn-hint').textContent =
       state.processing ? '' :
       noPhotos ? 'Add at least one photo in step 2 to enable the button.' :
@@ -624,6 +642,143 @@
       a.href = state.lastZipUrl;
       a.download = name;
       a.click();
+    }
+  });
+
+  // ---------- slideshow video ----------
+  const videoBtn = $('video-btn');
+
+  function updateVideoUi() {
+    const n = state.photos.length;
+    const total = n * state.videoSeconds;
+    const mins = Math.floor(total / 60);
+    const secs = Math.round(total % 60);
+    let text = n === 0 ? 'Add photos in step 2 to create a video.'
+      : `${n} photo${n === 1 ? '' : 's'} → video length ${mins}:${String(secs).padStart(2, '0')}.`;
+    if (total > 180) text += ' That is longer than the 3 minutes Instagram Reels allows — use fewer photos or less time per photo.';
+    $('video-length').textContent = text;
+    videoBtn.disabled = state.processing || state.videoRecording || n === 0;
+  }
+
+  $('video-ratio').addEventListener('change', e => {
+    state.videoRatio = e.target.value;
+    saveSettings();
+  });
+  $('video-secs').addEventListener('input', e => {
+    state.videoSeconds = Number(e.target.value);
+    $('video-secs-val').textContent = state.videoSeconds + 's';
+    saveSettings();
+    updateVideoUi();
+  });
+  $('video-fade').addEventListener('change', e => {
+    state.videoFade = e.target.value === 'fade';
+    saveSettings();
+  });
+
+  videoBtn.addEventListener('click', async () => {
+    if (state.videoRecording || state.photos.length === 0) return;
+
+    const candidates = [
+      'video/mp4;codecs=avc1.640028',
+      'video/mp4;codecs=avc1.42E01E',
+      'video/mp4',
+      'video/webm;codecs=vp9',
+      'video/webm',
+    ];
+    const mime = window.MediaRecorder && candidates.find(c => MediaRecorder.isTypeSupported(c));
+    if (!mime) {
+      $('video-status').textContent = 'This browser cannot record video — try Chrome or Edge.';
+      return;
+    }
+
+    state.videoRecording = true;
+    updateVideoUi();
+    $('video-download').classList.add('hidden');
+
+    const key = state.videoRatio;
+    const spec = RATIOS[key];
+    const canvas = document.createElement('canvas');
+    canvas.width = spec.width;
+    canvas.height = spec.height;
+    const ctx = canvas.getContext('2d');
+    const stream = canvas.captureStream(30);
+    // an off-screen canvas is not composited, so frames must be pushed
+    // to the recorder explicitly where the browser supports it
+    const track = stream.getVideoTracks()[0];
+    const pushFrame = typeof track.requestFrame === 'function'
+      ? () => track.requestFrame() : () => {};
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12000000 });
+    const chunks = [];
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    const stopped = new Promise(res => { rec.onstop = res; });
+
+    const holdMs = state.videoSeconds * 1000;
+    const fadeMs = state.videoFade && state.photos.length > 1 ? 600 : 0;
+    const raf = () => new Promise(requestAnimationFrame);
+    const renderPhoto = async photo => {
+      const bmp = await fileToBitmap(photo.file);
+      try { return await renderOne(bmp, key, 1); } finally { bmp.close(); }
+    };
+
+    try {
+      let cur = await renderPhoto(state.photos[0]);
+      rec.start(1000);
+      for (let i = 0; i < state.photos.length; i++) {
+        $('video-status').textContent = `Recording photo ${i + 1} of ${state.photos.length}…`;
+        // prepare the next photo while the current one is on screen
+        const nextPromise = i + 1 < state.photos.length ? renderPhoto(state.photos[i + 1]) : null;
+        const holdEnd = performance.now() + holdMs - fadeMs;
+        while (performance.now() < holdEnd) {
+          ctx.drawImage(cur, 0, 0);
+          pushFrame();
+          await raf();
+        }
+        const next = nextPromise ? await nextPromise : null;
+        if (next && fadeMs > 0) {
+          const fadeStart = performance.now();
+          while (true) {
+            const t = (performance.now() - fadeStart) / fadeMs;
+            if (t >= 1) break;
+            ctx.globalAlpha = 1;
+            ctx.drawImage(cur, 0, 0);
+            ctx.globalAlpha = t;
+            ctx.drawImage(next, 0, 0);
+            ctx.globalAlpha = 1;
+            pushFrame();
+            await raf();
+          }
+        }
+        if (next) cur = next;
+      }
+      ctx.drawImage(cur, 0, 0);
+      pushFrame();
+      await raf();
+      rec.stop();
+      await stopped;
+
+      const isMp4 = mime.startsWith('video/mp4');
+      const blob = new Blob(chunks, { type: mime.split(';')[0] });
+      const name = `slideshow-${key}-${new Date().toISOString().slice(0, 10)}.${isMp4 ? 'mp4' : 'webm'}`;
+      if (state.lastVideoUrl) URL.revokeObjectURL(state.lastVideoUrl);
+      state.lastVideoUrl = URL.createObjectURL(blob);
+      const dl = $('video-download');
+      dl.href = state.lastVideoUrl;
+      dl.download = name;
+      dl.textContent = `⬇ Save video (${(blob.size / 1e6).toFixed(1)} MB)`;
+      dl.classList.remove('hidden');
+      const a = document.createElement('a');
+      a.href = state.lastVideoUrl;
+      a.download = name;
+      a.click();
+      $('video-status').textContent = isMp4
+        ? 'Video ready (MP4) — ready for Instagram. If no download started, click "Save video" or right-click it → "Save link as…".'
+        : 'Video ready (WebM). Instagram may not accept WebM — record in Chrome or Edge to get MP4.';
+    } catch (err) {
+      console.error(err);
+      $('video-status').textContent = 'Video failed: ' + err.message;
+    } finally {
+      state.videoRecording = false;
+      updateVideoUi();
     }
   });
 
