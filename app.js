@@ -28,6 +28,7 @@
     marginPct: 3,
     cropMode: 'smart',
     quality: 90,
+    format: 'jpeg',
     copyright: '',
     processing: false,
   };
@@ -115,6 +116,7 @@
       marginPct: state.marginPct,
       cropMode: state.cropMode,
       quality: state.quality,
+      format: state.format,
       copyright: state.copyright,
       ratios: selectedRatios(),
     });
@@ -129,6 +131,7 @@
     state.marginPct = s.marginPct ?? state.marginPct;
     state.cropMode = s.cropMode ?? state.cropMode;
     state.quality = s.quality ?? state.quality;
+    state.format = s.format ?? state.format;
     state.copyright = s.copyright ?? state.copyright;
 
     document.querySelector('#pos-grid .active')?.classList.remove('active');
@@ -144,6 +147,8 @@
       $(valId).textContent = v + '%';
     }
     $('crop-mode').value = state.cropMode;
+    $('out-format').value = state.format;
+    $('jpeg-quality').disabled = state.format === 'png';
     $('copyright-text').value = state.copyright;
     if (Array.isArray(s.ratios)) {
       for (const key of Object.keys(RATIOS)) {
@@ -301,6 +306,12 @@
     state.copyright = e.target.value;
     saveSettings();
     refreshPreviewDebounced();
+  });
+
+  $('out-format').addEventListener('change', e => {
+    state.format = e.target.value;
+    $('jpeg-quality').disabled = state.format === 'png';
+    saveSettings();
   });
 
   function bindSlider(id, valId, apply) {
@@ -533,10 +544,11 @@
         try {
           for (const key of ratios) {
             const canvas = await renderOne(bitmap, key, 1);
+            const png = state.format === 'png';
             const blob = await new Promise(res =>
-              canvas.toBlob(res, 'image/jpeg', state.quality / 100));
+              canvas.toBlob(res, png ? 'image/png' : 'image/jpeg', png ? undefined : state.quality / 100));
             const base = photo.file.name.replace(/\.[^.]+$/, '').replace(/[\\/:*?"<>|]/g, '_');
-            zip.add(`${key}/${base}_${key}.jpg`, new Uint8Array(await blob.arrayBuffer()));
+            zip.add(`${key}/${base}_${key}.${png ? 'png' : 'jpg'}`, new Uint8Array(await blob.arrayBuffer()));
             done++;
             setProgress(done, total);
             // yield to the UI thread so the page stays responsive
@@ -566,7 +578,12 @@
       a.click();
 
       const okCount = total - failed.length * ratios.length;
-      let msg = `Done! ${okCount} image${okCount === 1 ? '' : 's'} exported. If no download started, click the "Save ZIP" button.`;
+      let msg = `Done! ${okCount} image${okCount === 1 ? '' : 's'} exported. If no download started, click "Save ZIP" — or right-click it and choose "Save link as…".`;
+      const framesLoaded = Object.keys(state.frames).length > 0;
+      const missingFrames = ratios.filter(r => !state.frames[r]);
+      if (framesLoaded && missingFrames.length) {
+        msg += ` Note: no frame is loaded for ${missingFrames.map(k => k.replace('x', ':')).join(', ')} — those photos got ${state.logo ? 'the plain logo instead' : 'no logo'}.`;
+      }
       if (failed.length) msg += ` Skipped ${failed.length} unreadable photo(s): ${failed.join(', ')}`;
       setStatus(msg, failed.length > 0);
     } catch (err) {
@@ -653,8 +670,21 @@
     if (lastLogo) {
       try {
         const blob = await (await fetch(lastLogo)).blob();
-        state.logo = await createImageBitmap(blob);
-        state.logoDataUrl = lastLogo;
+        const bitmap = await createImageBitmap(blob);
+        // images stored before frame support existed may actually be frames —
+        // re-classify so they are applied full-cover, not as a corner logo
+        const frameKey = classifyFrame(bitmap);
+        if (frameKey) {
+          if (state.frames[frameKey]) bitmap.close();
+          else {
+            state.frames[frameKey] = { bitmap, dataUrl: lastLogo };
+            persistFrames();
+          }
+          store.set('smlb.lastLogo', null);
+        } else {
+          state.logo = bitmap;
+          state.logoDataUrl = lastLogo;
+        }
       } catch { /* unreadable stored logo — skip it */ }
     }
     renderActiveLogos();
