@@ -43,7 +43,7 @@ The included APCM transparent frame overlays are locked to these presets:
 
 - Instagram Portrait: `frames/apcm-4x5.png`
 - Story / Reel: `frames/apcm-story.png`
-- APCM 16:9, X Landscape, YouTube Thumbnail: `frames/apcm-16x9.png`
+- Landscape 16:9, X Landscape, YouTube Thumbnail: `frames/apcm-16x9.png`
 
 The photo is drawn first, then the APCM frame is drawn on top, so the logo and lines stay in the same place across the batch.
 

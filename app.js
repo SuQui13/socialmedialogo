@@ -14,12 +14,12 @@ const presets = [
   { id: "instagram-square", name: "Instagram Square", note: "Feed post", width: 1080, height: 1080 },
   { id: "instagram-portrait", name: "Instagram Portrait", note: "APCM 4:5 frame", width: 1080, height: 1350, frameId: "apcm-4x5" },
   { id: "story-reel", name: "Story / Reel", note: "APCM story frame", width: 1080, height: 1920, frameId: "apcm-story" },
-  { id: "apcm-16x9", name: "APCM 16:9", note: "Locked logo frame", width: 1920, height: 1080, frameId: "apcm-16x9" },
+  { id: "apcm-16x9", name: "Landscape 16:9", note: "Locked APCM frame", width: 1920, height: 1080, frameId: "apcm-16x9" },
   { id: "facebook-link", name: "Facebook Link", note: "Landscape share", width: 1200, height: 630 },
   { id: "linkedin-feed", name: "LinkedIn Feed", note: "Shared image", width: 1200, height: 627 },
-  { id: "x-landscape", name: "X Landscape", note: "APCM 16:9 frame", width: 1600, height: 900, frameId: "apcm-16x9" },
+  { id: "x-landscape", name: "X Landscape", note: "APCM landscape frame", width: 1600, height: 900, frameId: "apcm-16x9" },
   { id: "pinterest-pin", name: "Pinterest Pin", note: "Tall pin", width: 1000, height: 1500 },
-  { id: "youtube-thumb", name: "YouTube Thumbnail", note: "APCM 16:9 frame", width: 1280, height: 720, frameId: "apcm-16x9" },
+  { id: "youtube-thumb", name: "YouTube Thumbnail", note: "APCM landscape frame", width: 1280, height: 720, frameId: "apcm-16x9" },
 ];
 
 const state = {
