@@ -1,0 +1,6 @@
+EXPORTS/
+READY-TO-PUBLISH-4x5/
+*.zip
+*.mp4
+*.log
+node_modules/

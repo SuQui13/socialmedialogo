@@ -1,177 +1,347 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Social Media Logo Batcher</title>
-<link rel="stylesheet" href="styles.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📸</text></svg>">
-</head>
-<body>
-<header>
-  <h1>📸 Social Media Logo Batcher</h1>
-  <p class="tagline">Upload photos, apply your logo, export in 4:5, 16:9 and 9:16 — all in your browser. Nothing is uploaded to any server.</p>
-</header>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Social Photo Exporter</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true">
+      <symbol id="icon-image" viewBox="0 0 24 24">
+        <path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 13 4.4-4.4a1.6 1.6 0 0 1 2.2 0L14 15l1.4-1.4a1.6 1.6 0 0 1 2.2 0L21 17M8 9.5h.01"/>
+      </symbol>
+      <symbol id="icon-logo" viewBox="0 0 24 24">
+        <path d="M12 3 4 7v10l8 4 8-4V7l-8-4Zm0 0v8m8-4-8 4-8-4m8 4v10"/>
+      </symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24">
+        <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/>
+      </symbol>
+      <symbol id="icon-folder" viewBox="0 0 24 24">
+        <path d="M3 6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z"/>
+      </symbol>
+      <symbol id="icon-video" viewBox="0 0 24 24">
+        <path d="M15 10.5 20 7v10l-5-3.5M5 5h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/>
+      </symbol>
+      <symbol id="icon-x" viewBox="0 0 24 24">
+        <path d="m6 6 12 12M18 6 6 18"/>
+      </symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24">
+        <path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8M18 3v4h4M6 21v-4H2"/>
+      </symbol>
+      <symbol id="icon-crop" viewBox="0 0 24 24">
+        <path d="M6 3v12a3 3 0 0 0 3 3h12M3 6h12a3 3 0 0 1 3 3v12"/>
+      </symbol>
+      <symbol id="icon-move" viewBox="0 0 24 24">
+        <path d="M12 2v20M12 2 8 6m4-4 4 4M12 22l-4-4m4 4 4-4M2 12h20M2 12l4-4m-4 4 4 4M22 12l-4-4m4 4-4 4"/>
+      </symbol>
+      <symbol id="icon-file" viewBox="0 0 24 24">
+        <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Zm0 0v6h6"/>
+      </symbol>
+      <symbol id="icon-face" viewBox="0 0 24 24">
+        <path d="M9 10h.01M15 10h.01M9.5 15a4 4 0 0 0 5 0M5 11a7 7 0 0 1 14 0v2a7 7 0 0 1-14 0v-2Zm2-5 1.5 2.5M17 6l-1.5 2.5"/>
+      </symbol>
+    </svg>
 
-<main>
-  <!-- STEP 1: LOGO -->
-  <section class="card" id="logo-section">
-    <h2><span class="step">1</span> Your logo</h2>
-    <div class="dropzone" id="logo-drop">
-      <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple hidden>
-      <div class="dz-inner" id="logo-dz-inner">
-        <p><strong>Drop your logo or frame here</strong> or click to choose</p>
-        <p class="hint">PNG with transparency works best. A transparent image shaped like 4:5, 16:9 or 9:16 is recognized as a full frame and stretched over the whole photo.</p>
-      </div>
-      <div class="logo-preview hidden" id="logo-preview"></div>
-    </div>
-    <p class="hint hidden" id="frame-hint">Frames cover the whole photo exactly as designed. The position, size, opacity and margin controls below only apply to a plain logo.</p>
-
-    <div class="saved-logos hidden" id="saved-logos">
-      <p class="hint">Your saved logos — click one to use it:</p>
-      <div class="saved-logo-row" id="saved-logo-row"></div>
-    </div>
-
-    <div class="settings-grid">
-      <label>Position
-        <div class="pos-grid" id="pos-grid">
-          <button type="button" data-pos="tl" title="Top left"></button>
-          <button type="button" data-pos="tc" title="Top center"></button>
-          <button type="button" data-pos="tr" title="Top right"></button>
-          <button type="button" data-pos="ml" title="Middle left"></button>
-          <button type="button" data-pos="mc" title="Center"></button>
-          <button type="button" data-pos="mr" title="Middle right"></button>
-          <button type="button" data-pos="bl" title="Bottom left"></button>
-          <button type="button" data-pos="bc" title="Bottom center"></button>
-          <button type="button" data-pos="br" class="active" title="Bottom right"></button>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>Social Photo Exporter</h1>
+          <p>Fast branded image crops for posts, stories, thumbnails, and pins.</p>
         </div>
-      </label>
-      <label>Logo size <span class="val" id="size-val">18%</span>
-        <input type="range" id="logo-size" min="5" max="50" value="18">
-      </label>
-      <label>Opacity <span class="val" id="opacity-val">100%</span>
-        <input type="range" id="logo-opacity" min="10" max="100" value="100">
-      </label>
-      <label>Margin <span class="val" id="margin-val">3%</span>
-        <input type="range" id="logo-margin" min="0" max="10" value="3">
-      </label>
-      <label>Copyright text
-        <input type="text" id="copyright-text" value="" placeholder="© Your name">
-        <span class="hint">Optional — if filled in, it's stamped on each photo opposite the logo.</span>
-      </label>
-    </div>
-  </section>
+        <button class="icon-button" id="resetAll" type="button" aria-label="Reset app" title="Reset app">
+          <svg><use href="#icon-refresh"></use></svg>
+        </button>
+      </header>
 
-  <!-- STEP 2: PHOTOS -->
-  <section class="card" id="photos-section">
-    <h2><span class="step">2</span> Your photos <span class="counter" id="photo-counter">0 / 150</span></h2>
-    <div class="dropzone" id="photo-drop">
-      <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple hidden>
-      <div class="dz-inner">
-        <p><strong>Drop up to 150 photos here</strong> or click to choose</p>
-        <p class="hint">JPEG, PNG or WebP</p>
+      <div class="workspace">
+        <aside class="panel controls-panel" aria-label="Editor controls">
+          <section class="control-group">
+            <div class="group-title">
+              <svg><use href="#icon-file"></use></svg>
+              <h2>Files</h2>
+            </div>
+            <div class="upload-row">
+              <label class="file-pick" for="photoInput">
+                <svg><use href="#icon-image"></use></svg>
+                <span>Photos</span>
+                <small id="photoName">Choose up to 150</small>
+              </label>
+              <label class="file-pick" for="logoInput">
+                <svg><use href="#icon-logo"></use></svg>
+                <span>Logo</span>
+                <small id="logoName">Choose image</small>
+              </label>
+            </div>
+            <input id="photoInput" type="file" accept="image/*" multiple>
+            <input id="logoInput" type="file" accept="image/*">
+          </section>
+
+          <section class="control-group batch-group">
+            <div class="group-title">
+              <svg><use href="#icon-image"></use></svg>
+              <h2>Batch</h2>
+            </div>
+            <div class="batch-summary">
+              <strong id="batchCount">0 photos</strong>
+              <span id="faceSummary">Face scan waiting</span>
+            </div>
+            <div class="photo-list" id="photoList" aria-label="Selected photos"></div>
+          </section>
+
+          <section class="control-group">
+            <div class="group-title">
+              <svg><use href="#icon-crop"></use></svg>
+              <h2>Size</h2>
+            </div>
+            <div class="preset-list" id="presetList"></div>
+          </section>
+
+          <section class="control-group">
+            <div class="group-title">
+              <svg><use href="#icon-face"></use></svg>
+              <h2>Faces</h2>
+            </div>
+            <label class="check-field">
+              <input id="faceAwareCrop" type="checkbox" checked>
+              <span>Face-aware crop</span>
+            </label>
+            <div class="face-actions">
+              <button class="secondary-button compact-button" id="scanCurrent" type="button" disabled>
+                <svg><use href="#icon-face"></use></svg>
+                Scan selected
+              </button>
+              <button class="secondary-button compact-button" id="scanBatch" type="button" disabled>
+                <svg><use href="#icon-face"></use></svg>
+                Scan batch
+              </button>
+            </div>
+            <div class="mini-status" id="faceStatus">Preparing face protection...</div>
+          </section>
+
+          <section class="control-group">
+            <div class="group-title">
+              <svg><use href="#icon-image"></use></svg>
+              <h2>Photo</h2>
+            </div>
+            <div class="segmented" role="group" aria-label="Photo fit">
+              <button class="segment active" data-fit="cover" type="button">Cover</button>
+              <button class="segment" data-fit="contain" type="button">Contain</button>
+            </div>
+            <label class="range-field">
+              <span>Zoom</span>
+              <input id="photoZoom" type="range" min="50" max="300" step="1" value="100">
+              <output id="photoZoomValue">100%</output>
+            </label>
+            <label class="range-field">
+              <span>Horizontal</span>
+              <input id="photoX" type="range" min="-60" max="60" step="1" value="0">
+              <output id="photoXValue">0</output>
+            </label>
+            <label class="range-field">
+              <span>Vertical</span>
+              <input id="photoY" type="range" min="-60" max="60" step="1" value="0">
+              <output id="photoYValue">0</output>
+            </label>
+            <button class="secondary-button" id="centerPhoto" type="button">
+              <svg><use href="#icon-move"></use></svg>
+              Center photo
+            </button>
+          </section>
+        </aside>
+
+        <section class="stage" aria-label="Image preview">
+          <div class="stage-toolbar">
+            <div>
+              <strong id="activePresetName">Instagram Square</strong>
+              <span id="activePresetSize">1080 x 1080</span>
+              <em id="activePhotoMeta">No photo selected</em>
+            </div>
+            <div class="layer-toggle" role="group" aria-label="Drag layer">
+              <button class="active" data-layer="photo" type="button">Photo</button>
+              <button data-layer="logo" type="button">Logo</button>
+            </div>
+          </div>
+
+          <div class="canvas-frame">
+            <canvas id="previewCanvas" aria-label="Composed social media image preview"></canvas>
+          </div>
+
+          <div class="status-line">
+            <span id="statusText">Add a photo to begin.</span>
+            <span id="cursorHint">Drag the selected layer on the preview.</span>
+          </div>
+        </section>
+
+        <aside class="panel export-panel" aria-label="Logo and export controls">
+          <section class="control-group">
+            <div class="group-title">
+              <svg><use href="#icon-file"></use></svg>
+              <h2>Frame</h2>
+            </div>
+            <label class="check-field">
+              <input id="frameEnabled" type="checkbox" checked>
+              <span>Use APCM frame when available</span>
+            </label>
+            <div class="mini-status" id="frameStatus">Loading frames...</div>
+          </section>
+
+          <section class="control-group">
+            <div class="group-title">
+              <svg><use href="#icon-logo"></use></svg>
+              <h2>Logo</h2>
+            </div>
+            <div class="anchor-grid" id="anchorGrid" aria-label="Logo anchor">
+              <button data-anchor="tl" type="button" aria-label="Top left"></button>
+              <button data-anchor="tc" type="button" aria-label="Top center"></button>
+              <button data-anchor="tr" type="button" aria-label="Top right"></button>
+              <button data-anchor="cl" type="button" aria-label="Center left"></button>
+              <button data-anchor="cc" type="button" aria-label="Center"></button>
+              <button data-anchor="cr" type="button" aria-label="Center right"></button>
+              <button data-anchor="bl" type="button" aria-label="Bottom left"></button>
+              <button data-anchor="bc" type="button" aria-label="Bottom center"></button>
+              <button class="active" data-anchor="br" type="button" aria-label="Bottom right"></button>
+            </div>
+            <label class="range-field">
+              <span>Size</span>
+              <input id="logoSize" type="range" min="5" max="55" step="1" value="18">
+              <output id="logoSizeValue">18%</output>
+            </label>
+            <label class="range-field">
+              <span>Opacity</span>
+              <input id="logoOpacity" type="range" min="10" max="100" step="1" value="100">
+              <output id="logoOpacityValue">100%</output>
+            </label>
+            <label class="range-field">
+              <span>Rotation</span>
+              <input id="logoRotation" type="range" min="-45" max="45" step="1" value="0">
+              <output id="logoRotationValue">0 deg</output>
+            </label>
+            <button class="secondary-button" id="removeLogo" type="button">
+              <svg><use href="#icon-refresh"></use></svg>
+              Clear logo
+            </button>
+          </section>
+
+          <section class="control-group">
+            <div class="group-title">
+              <svg><use href="#icon-download"></use></svg>
+              <h2>Export</h2>
+            </div>
+            <button class="ready-download" id="saveReady" type="button" disabled>
+              <svg><use href="#icon-download"></use></svg>
+              <span id="saveReadyName">Upload photos first</span>
+            </button>
+            <div class="format-grid">
+              <label>
+                <span>Format</span>
+                <select id="formatSelect">
+                  <option value="png">PNG</option>
+                  <option value="jpeg">JPEG</option>
+                </select>
+              </label>
+              <label>
+                <span>Background</span>
+                <input id="backgroundColor" type="color" value="#ffffff">
+              </label>
+            </div>
+            <label class="check-field">
+              <input id="transparentBg" type="checkbox">
+              <span>Transparent PNG background</span>
+            </label>
+            <label class="range-field quality-field">
+              <span>Quality</span>
+              <input id="jpegQuality" type="range" min="60" max="100" step="1" value="92">
+              <output id="jpegQualityValue">92%</output>
+            </label>
+            <button class="primary-button" id="downloadCurrent" type="button" disabled>
+              <svg><use href="#icon-download"></use></svg>
+              Download selected size
+            </button>
+            <div class="folder-export">
+              <div class="folder-export-title">
+                <svg><use href="#icon-folder"></use></svg>
+                <strong>Batch folder</strong>
+                <span>No ZIP</span>
+              </div>
+              <button class="primary-button" id="exportFolderCurrent" type="button" disabled>
+                <svg><use href="#icon-folder"></use></svg>
+                Save batch current size
+              </button>
+              <button class="secondary-button" id="exportFolderAll" type="button" disabled>
+                <svg><use href="#icon-folder"></use></svg>
+                Save batch all sizes
+              </button>
+              <button class="secondary-button" id="openExportFolder" type="button" hidden>
+                <svg><use href="#icon-folder"></use></svg>
+                Open exported folder
+              </button>
+              <div class="mini-status" id="folderExportStatus">Connecting to local folder...</div>
+            </div>
+            <button class="secondary-button" id="downloadAll" type="button" disabled>
+              <svg><use href="#icon-download"></use></svg>
+              ZIP selected all sizes
+            </button>
+            <button class="secondary-button" id="downloadBatchCurrent" type="button" disabled>
+              <svg><use href="#icon-download"></use></svg>
+              ZIP batch current size
+            </button>
+            <button class="secondary-button" id="downloadBatchAll" type="button" disabled>
+              <svg><use href="#icon-download"></use></svg>
+              ZIP batch all sizes
+            </button>
+            <div class="video-export">
+              <div class="video-export-title">
+                <svg><use href="#icon-video"></use></svg>
+                <strong>4:5 MP4</strong>
+                <span>1080x1350</span>
+              </div>
+              <div class="video-grid">
+                <label>
+                  <span>Transition</span>
+                  <select id="videoTransition">
+                    <option value="fade">Crossfade</option>
+                    <option value="slide">Slide</option>
+                    <option value="zoom">Zoom fade</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Photo time</span>
+                  <select id="videoPhotoDuration">
+                    <option value="1.5">1.5 sec</option>
+                    <option value="2" selected>2 sec</option>
+                    <option value="3">3 sec</option>
+                    <option value="4">4 sec</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Transition time</span>
+                  <select id="videoTransitionDuration">
+                    <option value="0.4">0.4 sec</option>
+                    <option value="0.6" selected>0.6 sec</option>
+                    <option value="1">1 sec</option>
+                  </select>
+                </label>
+              </div>
+              <button class="primary-button" id="exportVideo" type="button" disabled>
+                <svg><use href="#icon-video"></use></svg>
+                Export 4:5 MP4
+              </button>
+              <button class="secondary-button" id="cancelVideo" type="button" hidden>
+                <svg><use href="#icon-x"></use></svg>
+                Cancel video
+              </button>
+              <progress id="videoProgress" max="100" value="0" hidden></progress>
+              <div class="mini-status" id="videoStatus">Checking MP4 support...</div>
+            </div>
+          </section>
+        </aside>
       </div>
-    </div>
-    <div class="thumb-grid" id="thumb-grid"></div>
-    <button type="button" class="btn-small hidden" id="clear-photos">Clear all photos</button>
-  </section>
+    </main>
 
-  <!-- STEP 3: OUTPUT -->
-  <section class="card" id="output-section">
-    <h2><span class="step">3</span> Output formats</h2>
-    <div class="ratio-row">
-      <label class="ratio-check">
-        <input type="checkbox" id="ratio-45" checked>
-        <span class="ratio-box r45"></span>
-        <span>4:5<br><small>Feed post · 1080×1350</small></span>
-      </label>
-      <label class="ratio-check">
-        <input type="checkbox" id="ratio-169" checked>
-        <span class="ratio-box r169"></span>
-        <span>16:9<br><small>Landscape · 1920×1080</small></span>
-      </label>
-      <label class="ratio-check">
-        <input type="checkbox" id="ratio-916" checked>
-        <span class="ratio-box r916"></span>
-        <span>9:16<br><small>Story / Reel · 1080×1920</small></span>
-      </label>
-    </div>
-
-    <div class="settings-grid">
-      <label>Smart cropping
-        <select id="crop-mode">
-          <option value="smart" selected>Smart (detect faces &amp; subject)</option>
-          <option value="center">Center crop</option>
-        </select>
-      </label>
-      <label>File format
-        <select id="out-format">
-          <option value="jpeg" selected>JPEG — smaller files</option>
-          <option value="png">PNG — maximum quality, much larger files</option>
-        </select>
-      </label>
-      <label>JPEG quality <span class="val" id="quality-val">90%</span>
-        <input type="range" id="jpeg-quality" min="60" max="100" value="90">
-      </label>
-    </div>
-  </section>
-
-  <!-- STEP 4: PREVIEW + PROCESS -->
-  <section class="card" id="process-section">
-    <h2><span class="step">4</span> Preview &amp; export</h2>
-    <div class="preview-row" id="preview-row">
-      <p class="hint">Add photos above — a live preview of the first photo appears here.</p>
-    </div>
-    <div class="process-row">
-      <button type="button" class="btn-primary" id="process-btn" disabled>Process &amp; download ZIP</button>
-      <a class="btn-primary hidden" id="manual-download" download>⬇ Save ZIP</a>
-      <div class="progress hidden" id="progress-wrap">
-        <div class="progress-bar" id="progress-bar"></div>
-        <span class="progress-label" id="progress-label"></span>
-      </div>
-    </div>
-    <p class="hint" id="btn-hint"></p>
-    <p class="hint" id="status-line"></p>
-  </section>
-
-  <!-- STEP 5: SLIDESHOW VIDEO -->
-  <section class="card" id="video-section">
-    <h2><span class="step">5</span> Slideshow video <span class="counter">optional</span></h2>
-    <p class="hint">Turns all your branded photos into one video — great for Reels. Recording happens live, so it takes as long as the video lasts; keep this tab visible while it records.</p>
-    <div class="settings-grid">
-      <label>Video format
-        <select id="video-ratio">
-          <option value="9x16" selected>9:16 — Reel / Story</option>
-          <option value="4x5">4:5 — Feed</option>
-          <option value="16x9">16:9 — Landscape</option>
-        </select>
-      </label>
-      <label>Seconds per photo <span class="val" id="video-secs-val">2.5s</span>
-        <input type="range" id="video-secs" min="1" max="6" step="0.5" value="2.5">
-      </label>
-      <label>Transition
-        <select id="video-fade">
-          <option value="fade" selected>Crossfade</option>
-          <option value="cut">Instant cut</option>
-        </select>
-      </label>
-    </div>
-    <div class="process-row">
-      <button type="button" class="btn-primary" id="video-btn" disabled>Create video</button>
-      <a class="btn-primary hidden" id="video-download" download>⬇ Save video</a>
-    </div>
-    <p class="hint" id="video-length"></p>
-    <p class="hint" id="video-status"></p>
-  </section>
-</main>
-
-<footer>
-  <p>© Susana Quintal</p>
-  <p>Everything runs locally in your browser — your photos and logo are never uploaded anywhere.</p>
-</footer>
-
-<script src="zip.js"></script>
-<script src="smartcrop.js"></script>
-<script src="app.js"></script>
-</body>
+    <script src="vendor/tracking/tracking-min.js"></script>
+    <script src="vendor/tracking/data/face-min.js"></script>
+    <script src="vendor/mp4-muxer/mp4-muxer.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>

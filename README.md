@@ -1,51 +1,54 @@
-# 📸 Social Media Logo Batcher
+# Social Photo Exporter
 
-A small web app that prepares your photos for social media:
+A small local browser app for uploading up to 150 photos, applying a logo, and exporting common social media image sizes.
 
-- **Upload up to 150 photos** at once (drag & drop or file picker)
-- **Add your logo** — choose position, size, opacity and margin
-- **Or use frame overlays** — upload a transparent PNG shaped like 4:5, 16:9 or 9:16 and the app recognizes it as a full frame, stretching it over every photo so your logo lands in exactly the same designed spot
-- **Saved in your browser** — logos, frames and settings are remembered for your next visit
-- **Slideshow video** — turn the branded photos into an MP4 (9:16 for Reels, or 4:5 / 16:9) with a crossfade, ready to upload to Instagram
-- **Export in social media ratios**: 4:5 (feed, 1080×1350), 16:9 (landscape, 1920×1080) and 9:16 (story/reel, 1080×1920)
-- **Smart cropping** — the app detects faces and the main subject of each photo so the crop keeps them in frame (with a simple center-crop option too)
-- **One ZIP download** with all processed images, organized in a folder per ratio
+## Open
 
-Everything runs **locally in your browser** — your photos and logo are never uploaded to any server.
+Double-click `START-APP.cmd`. The app opens at `http://127.0.0.1:8765/` and enables reliable direct-to-folder batch exports.
 
-## How to use it
+The small launcher window closes after the app starts. This is normal; the private local service continues running in the background. Opening an exported folder can place File Explorer in front of the app, but the app remains open behind it.
 
-1. Open the app (see below for options).
-2. **Step 1** — drop in your logo (a PNG with a transparent background looks best) and pick where it should sit on the photo.
-3. **Step 2** — drop in your photos (up to 150).
-4. **Step 3** — tick the formats you want: 4:5, 16:9 and/or 9:16.
-5. **Step 4** — check the live preview, then click **Process & download ZIP**.
-6. Unzip the downloaded file — you'll find folders `4x5/`, `16x9/` and `9x16/` with the ready-to-post images.
+For a standalone offline microapp, double-click `INSTALL-MICROAPP.cmd` once. It adds `Social Photo Exporter` to the Desktop. The shortcut starts the private local service and opens the app in its own Edge or Chrome window. No internet connection is required.
 
-## How to open the app
+## Sizes
 
-**Option A — GitHub Pages (recommended, one-time setup):**
-
-1. On GitHub, open this repository and go to **Settings → Pages**.
-2. Under "Build and deployment", set **Source** to "Deploy from a branch", pick the **main** branch and the **/ (root)** folder, then click **Save**.
-3. After a minute your app is live at `https://<your-username>.github.io/socialmedialogo/` — bookmark it and use it from any device.
-
-**Option B — open locally:**
-
-Download the repository (green **Code** button → *Download ZIP*), unzip it, and double-click `index.html`. It opens in your browser and works fully offline.
+- Instagram Square: 1080 x 1080
+- Instagram Portrait: 1080 x 1350
+- Story / Reel: 1080 x 1920
+- Facebook Link: 1200 x 630
+- LinkedIn Feed: 1200 x 627
+- X Landscape: 1600 x 900
+- Pinterest Pin: 1000 x 1500
+- YouTube Thumbnail: 1280 x 720
 
 ## Notes
 
-- Face detection uses the browser's built-in `FaceDetector` (Chrome and Edge). In other browsers the app automatically falls back to subject detection based on image analysis — smart cropping still works.
-- Photos are processed one at a time so even a 150-photo batch won't freeze your browser. A progress bar shows the status.
-- Output files are JPEG; you can adjust the quality in Step 3.
+Images are processed in the browser with canvas. Uploaded photos and logos stay on the computer.
 
-## Files
+Face-aware crop scans photos automatically after upload. It uses the browser's on-device face detector when available and includes a local tracking.js fallback for other browsers. Detected faces are kept inside a protected crop area; when a full-bleed crop cannot contain everyone, the app adds a softly blurred photo background instead of cutting a face. It detects face locations only and does not identify or name people.
 
-| File | Purpose |
-|---|---|
-| `index.html` | The app page |
-| `styles.css` | Styling |
-| `app.js` | Upload, settings, preview, batch processing and ZIP download |
-| `smartcrop.js` | Face/subject detection and crop selection |
-| `zip.js` | Minimal dependency-free ZIP writer |
+Use `Save batch current size` or `Save batch all sizes` to write finished images directly into the app's `EXPORTS` folder. The app creates a new named folder for every batch and can open it when the export finishes.
+
+ZIP downloads remain available as a fallback.
+
+The save button is always visible at the top of the `Export` panel. It shows what the app is waiting for, then changes to the exported filename when an image, ZIP, or MP4 is ready. Click it to open the system save dialog when supported or start a normal browser download.
+
+Large ZIP downloads can take a few moments to finish copying. Wait until the browser's download indicator shows that the ZIP is complete before opening or extracting it.
+
+The 4:5 MP4 export creates a silent 1080 x 1350 slideshow from the full photo batch. It applies the same face-safe crop, manual logo, and APCM 4:5 frame as the photo exporter, with crossfade, slide, or zoom-fade transitions. MP4 encoding runs locally in current Chrome and Edge browsers.
+
+## APCM Frames
+
+The included APCM transparent frame overlays are locked to these presets:
+
+- Instagram Portrait: `frames/apcm-4x5.png`
+- Story / Reel: `frames/apcm-story.png`
+- APCM 16:9, X Landscape, YouTube Thumbnail: `frames/apcm-16x9.png`
+
+The photo is drawn first, then the APCM frame is drawn on top, so the logo and lines stay in the same place across the batch.
+
+## Third-party code
+
+The local face-detection fallback uses tracking.js 1.1.3 under its BSD license. Its license is included at `vendor/tracking/LICENSE.md`.
+
+MP4 packaging uses mp4-muxer 5.2.1 under its MIT license. Its license is included at `vendor/mp4-muxer/LICENSE`.
