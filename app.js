@@ -1195,6 +1195,26 @@ function directDownload(ready) {
   link.remove();
 }
 
+async function saveReadyVideoToFolder(ready) {
+  if (state.folderExportSupport !== "ready" && !(await setupFolderExport())) return false;
+
+  const session = await folderRequest("/api/exports?label=video&expected=1", { method: "POST" });
+  await folderRequest(
+    `/api/exports/${session.id}/file?name=${encodeURIComponent(ready.filename)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": ready.blob.type || "video/mp4" },
+      body: ready.blob,
+    }
+  );
+  const completed = await folderRequest(`/api/exports/${session.id}/finish`, { method: "POST" });
+  state.lastFolderExport = { ...completed, id: session.id };
+  const message = `Saved video to ${completed.folderName}. Click Open exported folder.`;
+  setFolderExportStatus(message);
+  setStatus(message);
+  return true;
+}
+
 async function saveReadyDownload() {
   const ready = state.readyDownload;
   if (!ready) return;
@@ -1204,6 +1224,8 @@ async function saveReadyDownload() {
   const extension = extensionIndex >= 0 ? ready.filename.slice(extensionIndex) : "";
 
   try {
+    if (/\.mp4$/i.test(ready.filename) && await saveReadyVideoToFolder(ready)) return;
+
     if (typeof window.showSaveFilePicker === "function") {
       try {
         const options = { suggestedName: ready.filename };
