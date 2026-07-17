@@ -293,8 +293,21 @@
             <div class="video-export">
               <div class="video-export-title">
                 <svg><use href="#icon-video"></use></svg>
-                <strong>4:5 MP4</strong>
-                <span>1080x1350</span>
+                <strong>Video MP4</strong>
+                <span id="videoExportSize">4:5 / 1080x1350</span>
+              </div>
+              <div class="video-format-field">
+                <span>Video size</span>
+                <div class="video-format-segmented" role="group" aria-label="Video size">
+                  <button class="video-format-button active" data-video-preset="instagram-portrait" type="button" aria-pressed="true">
+                    <strong>4:5</strong>
+                    <span>Portrait</span>
+                  </button>
+                  <button class="video-format-button" data-video-preset="story-reel" type="button" aria-pressed="false">
+                    <strong>9:16</strong>
+                    <span>Story / Reel / TikTok</span>
+                  </button>
+                </div>
               </div>
               <div class="video-grid">
                 <label>
@@ -325,7 +338,7 @@
               </div>
               <button class="primary-button" id="exportVideo" type="button" disabled>
                 <svg><use href="#icon-video"></use></svg>
-                Export 4:5 MP4
+                <span id="videoExportButtonText">Export 4:5 MP4</span>
               </button>
               <button class="secondary-button" id="cancelVideo" type="button" hidden>
                 <svg><use href="#icon-x"></use></svg>

@@ -1,8 +1,13 @@
 const MAX_PHOTOS = 150;
-const VIDEO_PRESET_ID = "instagram-portrait";
+const DEFAULT_VIDEO_PRESET_ID = "instagram-portrait";
 const VIDEO_FPS = 30;
 const VIDEO_BITRATE = 6_000_000;
 const LOCAL_EXPORT_SERVER = "http://127.0.0.1:8765";
+
+const VIDEO_FORMATS = {
+  "instagram-portrait": { ratio: "4:5", filename: "4x5" },
+  "story-reel": { ratio: "9:16", filename: "9x16" },
+};
 
 const frameSources = {
   "apcm-4x5": "frames/apcm-4x5.png",
@@ -46,6 +51,7 @@ const state = {
   background: "#ffffff",
   transparent: false,
   jpegQuality: 0.92,
+  videoPresetId: DEFAULT_VIDEO_PRESET_ID,
   videoTransition: "fade",
   videoPhotoDuration: 2,
   videoTransitionDuration: 0.6,
@@ -85,6 +91,9 @@ const els = {
   downloadBatchCurrent: document.querySelector("#downloadBatchCurrent"),
   downloadBatchAll: document.querySelector("#downloadBatchAll"),
   exportVideo: document.querySelector("#exportVideo"),
+  videoExportSize: document.querySelector("#videoExportSize"),
+  videoExportButtonText: document.querySelector("#videoExportButtonText"),
+  videoFormatButtons: Array.from(document.querySelectorAll(".video-format-button")),
   cancelVideo: document.querySelector("#cancelVideo"),
   videoTransition: document.querySelector("#videoTransition"),
   videoPhotoDuration: document.querySelector("#videoPhotoDuration"),
@@ -123,6 +132,7 @@ const els = {
 let drag = null;
 let photoIdSeed = 0;
 let crcTable = null;
+let videoConfigRequestId = 0;
 
 function activePreset() {
   return presets.find((preset) => preset.id === state.presetId) || presets[0];
@@ -507,6 +517,8 @@ function canDetectFaces() {
 
 function syncControls() {
   const preset = activePreset();
+  const selectedVideoPreset = videoPreset();
+  const selectedVideoFormat = videoFormat();
   const photo = activePhoto();
   const hasPhoto = Boolean(photo);
   const hasBatch = state.photos.length > 0;
@@ -564,11 +576,18 @@ function syncControls() {
   els.cancelVideo.disabled = !state.videoExporting;
   els.videoProgress.hidden = !state.videoExporting;
   els.videoStatus.textContent = state.videoMessage;
+  els.videoExportSize.textContent = `${selectedVideoFormat.ratio} / ${selectedVideoPreset.width}x${selectedVideoPreset.height}`;
+  els.videoExportButtonText.textContent = `Export ${selectedVideoFormat.ratio} MP4`;
   els.videoTransition.value = state.videoTransition;
   els.videoPhotoDuration.value = String(state.videoPhotoDuration);
   els.videoTransitionDuration.value = String(state.videoTransitionDuration);
-  [els.videoTransition, els.videoPhotoDuration, els.videoTransitionDuration].forEach((control) => {
+  [els.videoTransition, els.videoPhotoDuration, els.videoTransitionDuration, ...els.videoFormatButtons].forEach((control) => {
     control.disabled = busy;
+  });
+  els.videoFormatButtons.forEach((button) => {
+    const active = button.dataset.videoPreset === state.videoPresetId;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
   });
   els.scanCurrent.disabled = !hasPhoto || !canDetectFaces() || busy;
   els.scanBatch.disabled = !hasBatch || !canDetectFaces() || busy;
@@ -1034,13 +1053,26 @@ function setupFaceDetector() {
   syncControls();
 }
 
+function videoFormat() {
+  return VIDEO_FORMATS[state.videoPresetId] || VIDEO_FORMATS[DEFAULT_VIDEO_PRESET_ID];
+}
+
 function videoPreset() {
-  return presets.find((preset) => preset.id === VIDEO_PRESET_ID);
+  return presets.find((preset) => preset.id === state.videoPresetId)
+    || presets.find((preset) => preset.id === DEFAULT_VIDEO_PRESET_ID);
 }
 
 async function setupVideoEncoder() {
+  const requestId = ++videoConfigRequestId;
   const preset = videoPreset();
+  const format = videoFormat();
+  state.videoSupport = "checking";
+  state.videoConfig = null;
+  setVideoStatus(`Checking ${format.ratio} MP4 support...`);
+  syncControls();
+
   if (!preset || !("VideoEncoder" in window) || !("VideoFrame" in window) || !window.Mp4Muxer) {
+    if (requestId !== videoConfigRequestId) return;
     state.videoSupport = "unsupported";
     state.videoConfig = null;
     setVideoStatus("MP4 export needs a current Chrome or Edge browser.");
@@ -1061,10 +1093,11 @@ async function setupVideoEncoder() {
     try {
       const config = { ...baseConfig, codec };
       const support = await VideoEncoder.isConfigSupported(config);
+      if (requestId !== videoConfigRequestId) return;
       if (support.supported) {
         state.videoSupport = "ready";
         state.videoConfig = config;
-        setVideoStatus("MP4 export ready.");
+        setVideoStatus(`${format.ratio} MP4 export ready.`);
         syncControls();
         return;
       }
@@ -1073,6 +1106,7 @@ async function setupVideoEncoder() {
     }
   }
 
+  if (requestId !== videoConfigRequestId) return;
   state.videoSupport = "unsupported";
   state.videoConfig = null;
   setVideoStatus("H.264 MP4 encoding is unavailable on this device.");
@@ -1300,7 +1334,7 @@ function videoTotalSeconds(photoCount = state.photos.length) {
 
 function videoFilename() {
   const date = new Date().toISOString().slice(0, 10);
-  return `apcm-4x5-${state.photos.length}-photos-${date}.mp4`;
+  return `apcm-${videoFormat().filename}-${state.photos.length}-photos-${date}.mp4`;
 }
 
 async function createVideoSlide(photo, preset) {
@@ -1390,7 +1424,7 @@ function cancelledVideoError() {
   return error;
 }
 
-async function encode4x5Mp4() {
+async function encodeMp4() {
   const preset = videoPreset();
   const totalSeconds = videoTotalSeconds();
   const totalFrames = Math.max(1, Math.ceil(totalSeconds * VIDEO_FPS));
@@ -1459,7 +1493,8 @@ async function encode4x5Mp4() {
   }
 }
 
-async function export4x5Video() {
+async function exportVideo() {
+  const format = videoFormat();
   if (!state.photos.length) {
     setVideoStatus("Add photos before exporting a video.");
     return;
@@ -1474,17 +1509,17 @@ async function export4x5Video() {
   state.videoExporting = true;
   state.videoCancelRequested = false;
   els.videoProgress.value = 0;
-  setStatus("Building 4:5 MP4...");
+  setStatus(`Building ${format.ratio} MP4...`);
   setVideoStatus("Rendering 0%...");
   syncControls();
 
   try {
-    const blob = await encode4x5Mp4();
+    const blob = await encodeMp4();
     if (state.videoCancelRequested) throw cancelledVideoError();
     setVideoStatus("Preparing MP4 file...");
     await downloadBlob(blob, videoFilename());
-    setVideoStatus(`MP4 ready - ${plural(state.photos.length, "photo")}. Click Save file.`);
-    setStatus("MP4 ready - click the Save file button.");
+    setVideoStatus(`${format.ratio} MP4 ready - ${plural(state.photos.length, "photo")}. Click Save file.`);
+    setStatus(`${format.ratio} MP4 ready - click the Save file button.`);
   } catch (error) {
     if (error.name === "AbortError") {
       setVideoStatus("Video export cancelled.");
@@ -1781,6 +1816,7 @@ function resetAll() {
     background: "#ffffff",
     transparent: false,
     jpegQuality: 0.92,
+    videoPresetId: DEFAULT_VIDEO_PRESET_ID,
     videoTransition: "fade",
     videoPhotoDuration: 2,
     videoTransitionDuration: 0.6,
@@ -1793,6 +1829,7 @@ function resetAll() {
   setStatus("Add photos to begin.");
   syncControls();
   renderPreview();
+  setupVideoEncoder();
 }
 
 function bindEvents() {
@@ -1918,6 +1955,17 @@ function bindEvents() {
     syncControls();
   });
 
+  els.videoFormatButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const presetId = button.dataset.videoPreset;
+      if (!VIDEO_FORMATS[presetId] || presetId === state.videoPresetId || state.exporting) return;
+      state.videoPresetId = presetId;
+      clearReadyDownload();
+      setStatus(`${videoFormat().ratio} video selected.`);
+      setupVideoEncoder();
+    });
+  });
+
   els.videoTransition.addEventListener("change", () => {
     state.videoTransition = els.videoTransition.value;
     syncControls();
@@ -1940,7 +1988,7 @@ function bindEvents() {
   els.downloadAll.addEventListener("click", () => exportZip(selectedAllSizeJobs(), zipName("selected-all-sizes")));
   els.downloadBatchCurrent.addEventListener("click", () => exportZip(batchCurrentSizeJobs(), zipName("batch-current-size")));
   els.downloadBatchAll.addEventListener("click", () => exportZip(batchAllSizeJobs(), zipName("batch-all-sizes")));
-  els.exportVideo.addEventListener("click", export4x5Video);
+  els.exportVideo.addEventListener("click", exportVideo);
   els.cancelVideo.addEventListener("click", () => {
     state.videoCancelRequested = true;
     els.cancelVideo.disabled = true;

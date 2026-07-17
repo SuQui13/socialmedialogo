@@ -663,6 +663,61 @@ input[type="range"] {
   margin-top: 12px;
 }
 
+.video-format-field {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.video-format-segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--panel-2);
+}
+
+.video-format-button {
+  min-width: 0;
+  min-height: 50px;
+  padding: 6px 8px;
+  display: grid;
+  place-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  line-height: 1.15;
+  text-align: center;
+}
+
+.video-format-button + .video-format-button {
+  border-left: 1px solid var(--line);
+}
+
+.video-format-button strong {
+  font-size: 0.9rem;
+}
+
+.video-format-button span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  white-space: normal;
+}
+
+.video-format-button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.video-format-button.active span {
+  color: white;
+}
+
 .video-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
