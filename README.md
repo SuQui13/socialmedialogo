@@ -29,7 +29,7 @@ Face-aware crop scans photos automatically after upload. It uses the browser's o
 
 Use `Save batch current size` or `Save batch all sizes` to write finished images directly into the app's `EXPORTS` folder. The app creates a new named folder for every batch and can open it when the export finishes.
 
-ZIP downloads remain available as a fallback.
+ZIP exports save directly into a new folder under `EXPORTS` when the offline launcher is running. On a public web host, the same Save button falls back to a normal browser download.
 
 The save button is always visible at the top of the `Export` panel. It shows what the app is waiting for, then changes to the exported filename when an image, ZIP, or MP4 is ready. Click it to open the system save dialog when supported or start a normal browser download.
 

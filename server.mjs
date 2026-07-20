@@ -22,6 +22,7 @@ const contentTypes = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".mp4": "video/mp4",
+  ".zip": "application/zip",
 };
 
 function setCors(response) {
@@ -49,7 +50,7 @@ function safeFilename(value) {
     .replace(/[<>:"/\\|?*\x00-\x1f]/g, "-")
     .replace(/^\.+/, "")
     .slice(0, 180);
-  return /\.(png|jpe?g|mp4)$/i.test(file) ? file : "";
+  return /\.(png|jpe?g|mp4|zip)$/i.test(file) ? file : "";
 }
 
 function timestamp() {

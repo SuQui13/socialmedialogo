@@ -1229,10 +1229,14 @@ function directDownload(ready) {
   link.remove();
 }
 
-async function saveReadyVideoToFolder(ready) {
+async function saveReadyFileToFolder(ready) {
+  const isVideo = /\.mp4$/i.test(ready.filename);
+  const isZip = /\.zip$/i.test(ready.filename);
+  if (!isVideo && !isZip) return false;
   if (state.folderExportSupport !== "ready" && !(await setupFolderExport())) return false;
 
-  const session = await folderRequest("/api/exports?label=video&expected=1", { method: "POST" });
+  const label = isVideo ? "video" : "zip";
+  const session = await folderRequest(`/api/exports?label=${label}&expected=1`, { method: "POST" });
   await folderRequest(
     `/api/exports/${session.id}/file?name=${encodeURIComponent(ready.filename)}`,
     {
@@ -1243,7 +1247,8 @@ async function saveReadyVideoToFolder(ready) {
   );
   const completed = await folderRequest(`/api/exports/${session.id}/finish`, { method: "POST" });
   state.lastFolderExport = { ...completed, id: session.id };
-  const message = `Saved video to ${completed.folderName}. Click Open exported folder.`;
+  const fileType = isVideo ? "video" : "ZIP";
+  const message = `Saved ${fileType} to ${completed.folderName}. Click Open exported folder.`;
   setFolderExportStatus(message);
   setStatus(message);
   return true;
@@ -1258,7 +1263,7 @@ async function saveReadyDownload() {
   const extension = extensionIndex >= 0 ? ready.filename.slice(extensionIndex) : "";
 
   try {
-    if (/\.mp4$/i.test(ready.filename) && await saveReadyVideoToFolder(ready)) return;
+    if (await saveReadyFileToFolder(ready)) return;
 
     if (typeof window.showSaveFilePicker === "function") {
       try {
