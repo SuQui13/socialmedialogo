@@ -7,6 +7,7 @@ const LOCAL_EXPORT_SERVER = "http://127.0.0.1:8765";
 const VIDEO_FORMATS = {
   "instagram-portrait": { ratio: "4:5", filename: "4x5" },
   "story-reel": { ratio: "9:16", filename: "9x16" },
+  "apcm-16x9": { ratio: "16:9", filename: "16x9" },
 };
 
 const frameSources = {

@@ -35,7 +35,7 @@ The save button is always visible at the top of the `Export` panel. It shows wha
 
 Large ZIP downloads can take a few moments to finish copying. Wait until the browser's download indicator shows that the ZIP is complete before opening or extracting it.
 
-The MP4 exporter creates a silent slideshow from the full photo batch in either 4:5 (1080 x 1350) or 9:16 (1080 x 1920). The 4:5 option uses the APCM portrait frame; the 9:16 option uses the APCM Story / Reel / TikTok frame. Both apply the same face-safe crop and transitions as the photo exporter. MP4 encoding runs locally in current Chrome and Edge browsers. The Save button writes the finished MP4 directly to a new folder under `EXPORTS`, avoiding unreliable browser downloads.
+The MP4 exporter creates a silent slideshow from the full photo batch in 4:5 (1080 x 1350), 9:16 (1080 x 1920), or landscape 16:9 (1920 x 1080). Each option uses its matching APCM frame and applies the same face-safe crop and transitions as the photo exporter. MP4 encoding runs locally in current Chrome and Edge browsers. The Save button writes the finished MP4 directly to a new folder under `EXPORTS`, avoiding unreliable browser downloads.
 
 ## APCM Frames
 
