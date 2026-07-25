@@ -214,7 +214,7 @@ async function setupFolderExport() {
     return true;
   } catch {
     state.folderExportSupport = "unavailable";
-    setFolderExportStatus("Double-click START-APP.cmd to enable folder export.");
+    setFolderExportStatus("Folder offline - batch saves will use ZIP.");
     return false;
   } finally {
     clearTimeout(timeout);
@@ -525,7 +525,6 @@ function syncControls() {
   const hasBatch = state.photos.length > 0;
   const busy = state.exporting || state.scanInProgress;
   const videoReady = state.videoSupport === "ready" && Boolean(state.videoConfig);
-  const folderReady = state.folderExportSupport === "ready";
 
   els.activePresetName.textContent = preset.name;
   els.activePresetSize.textContent = `${preset.width} x ${preset.height}`;
@@ -555,8 +554,8 @@ function syncControls() {
   els.downloadAll.disabled = !hasPhoto || busy;
   els.downloadBatchCurrent.disabled = !hasBatch || busy;
   els.downloadBatchAll.disabled = !hasBatch || busy;
-  els.exportFolderCurrent.disabled = !hasBatch || busy || !folderReady;
-  els.exportFolderAll.disabled = !hasBatch || busy || !folderReady;
+  els.exportFolderCurrent.disabled = !hasBatch || busy;
+  els.exportFolderAll.disabled = !hasBatch || busy;
   els.openExportFolder.hidden = !state.lastFolderExport;
   els.openExportFolder.disabled = busy;
   els.folderExportStatus.textContent = state.folderExportMessage;
@@ -1264,7 +1263,12 @@ async function saveReadyDownload() {
   const extension = extensionIndex >= 0 ? ready.filename.slice(extensionIndex) : "";
 
   try {
-    if (await saveReadyFileToFolder(ready)) return;
+    try {
+      if (await saveReadyFileToFolder(ready)) return;
+    } catch {
+      state.folderExportSupport = "unavailable";
+      setFolderExportStatus("Folder save unavailable - using browser save.");
+    }
 
     if (typeof window.showSaveFilePicker === "function") {
       try {
@@ -1592,9 +1596,17 @@ async function exportJobsToFolder(jobs, label) {
     return;
   }
 
-  if (state.folderExportSupport !== "ready" && !(await setupFolderExport())) {
-    setStatus("Direct folder export is offline. Double-click START-APP.cmd.");
-    return;
+  if (state.folderExportSupport !== "ready") {
+    state.exporting = true;
+    syncControls();
+    const folderAvailable = await setupFolderExport();
+    state.exporting = false;
+    syncControls();
+    if (!folderAvailable) {
+      setStatus("Folder save is offline. Preparing a ZIP backup...");
+      await exportZip(jobs, zipName(`batch-${label}`));
+      return;
+    }
   }
 
   clearReadyDownload();
@@ -1634,11 +1646,16 @@ async function exportJobsToFolder(jobs, label) {
     setStatus(`${message} Click Open exported folder.`);
   } catch (error) {
     const message = error.message || "Direct folder export failed.";
-    setFolderExportStatus(message);
-    setStatus(message);
+    state.folderExportSupport = "unavailable";
+    setFolderExportStatus("Folder save interrupted - preparing ZIP backup.");
+    setStatus(`${message} Preparing ZIP backup...`);
   } finally {
     state.exporting = false;
     syncControls();
+  }
+
+  if (state.folderExportSupport === "unavailable" && !state.lastFolderExport) {
+    await exportZip(jobs, zipName(`batch-${label}`));
   }
 }
 

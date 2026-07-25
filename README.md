@@ -27,7 +27,7 @@ Images are processed in the browser with canvas. Uploaded photos and logos stay 
 
 Face-aware crop scans photos automatically after upload. It uses the browser's on-device face detector when available and includes a local tracking.js fallback for other browsers. Detected faces are kept inside a protected crop area; when a full-bleed crop cannot contain everyone, the app adds a softly blurred photo background instead of cutting a face. It detects face locations only and does not identify or name people.
 
-Use `Save batch current size` or `Save batch all sizes` to write finished images directly into the app's `EXPORTS` folder. The app creates a new named folder for every batch and can open it when the export finishes.
+Use `Save batch current size` or `Save batch all sizes` to write finished images directly into the app's `EXPORTS` folder. The app creates a new named folder for every batch and can open it when the export finishes. If the local folder service is unavailable or stops during an export, the same buttons prepare a ZIP backup instead of abandoning the batch.
 
 ZIP exports save directly into a new folder under `EXPORTS` when the offline launcher is running. On a public web host, the same Save button falls back to a normal browser download.
 
