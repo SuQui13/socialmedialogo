@@ -84,6 +84,43 @@ svg {
   font-size: 0.95rem;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.language-link {
+  min-height: 42px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 253, 250, 0.42);
+  border-radius: var(--radius);
+  color: #fffdfa;
+  background: rgba(255, 253, 250, 0.09);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.language-link:hover,
+.language-link:focus-visible {
+  border-color: #fffdfa;
+  background: rgba(255, 253, 250, 0.17);
+}
+
+.topbar .creator-credit {
+  margin-top: 4px;
+  color: rgba(255, 253, 250, 0.72);
+  font-size: 0.78rem;
+}
+
+.creator-credit strong {
+  color: #fffdfa;
+}
+
 .icon-button,
 .primary-button,
 .secondary-button,
@@ -864,5 +901,9 @@ input[type="color"] {
   .topbar p,
   #cursorHint {
     display: none;
+  }
+
+  .topbar .creator-credit {
+    display: block;
   }
 }

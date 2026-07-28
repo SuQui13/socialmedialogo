@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-PT">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Social Photo Exporter</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Exportador de Fotos para Redes Sociais | Susana Quintal</title>
+    <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
     <svg class="sprite" aria-hidden="true">
@@ -46,34 +46,35 @@
     <main class="app">
       <header class="topbar">
         <div>
-          <h1>Social Photo Exporter</h1>
-          <p>Fast branded image crops for posts, stories, thumbnails, and pins.</p>
+          <h1>Exportador de Fotos para Redes Sociais</h1>
+          <p>Recortes rápidos com a sua marca para publicações, stories, miniaturas e pins.</p>
+          <p class="creator-credit">Criado por <strong>Susana Quintal</strong></p>
         </div>
         <div class="topbar-actions">
-          <a class="language-link" href="pt/" lang="pt">Português</a>
-          <button class="icon-button" id="resetAll" type="button" aria-label="Reset app" title="Reset app">
+          <a class="language-link" href="../" lang="en">English</a>
+          <button class="icon-button" id="resetAll" type="button" aria-label="Repor aplicação" title="Repor aplicação">
             <svg><use href="#icon-refresh"></use></svg>
           </button>
         </div>
       </header>
 
       <div class="workspace">
-        <aside class="panel controls-panel" aria-label="Editor controls">
+        <aside class="panel controls-panel" aria-label="Controlos do editor">
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-file"></use></svg>
-              <h2>Files</h2>
+              <h2>Ficheiros</h2>
             </div>
             <div class="upload-row">
               <label class="file-pick" for="photoInput">
                 <svg><use href="#icon-image"></use></svg>
-                <span>Photos</span>
-                <small id="photoName">Choose up to 150</small>
+                <span>Fotografias</span>
+                <small id="photoName">Escolher até 150</small>
               </label>
               <label class="file-pick" for="logoInput">
                 <svg><use href="#icon-logo"></use></svg>
-                <span>Logo</span>
-                <small id="logoName">Choose image</small>
+                <span>Logótipo</span>
+                <small id="logoName">Escolher imagem</small>
               </label>
             </div>
             <input id="photoInput" type="file" accept="image/*" multiple>
@@ -83,19 +84,19 @@
           <section class="control-group batch-group">
             <div class="group-title">
               <svg><use href="#icon-image"></use></svg>
-              <h2>Batch</h2>
+              <h2>Lote</h2>
             </div>
             <div class="batch-summary">
-              <strong id="batchCount">0 photos</strong>
-              <span id="faceSummary">Face scan waiting</span>
+              <strong id="batchCount">0 fotografias</strong>
+              <span id="faceSummary">Deteção facial em espera</span>
             </div>
-            <div class="photo-list" id="photoList" aria-label="Selected photos"></div>
+            <div class="photo-list" id="photoList" aria-label="Fotografias selecionadas"></div>
           </section>
 
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-crop"></use></svg>
-              <h2>Size</h2>
+              <h2>Formato</h2>
             </div>
             <div class="preset-list" id="presetList"></div>
           </section>
@@ -103,33 +104,33 @@
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-face"></use></svg>
-              <h2>Faces</h2>
+              <h2>Rostos</h2>
             </div>
             <label class="check-field">
               <input id="faceAwareCrop" type="checkbox" checked>
-              <span>Face-aware crop</span>
+              <span>Recorte com proteção de rostos</span>
             </label>
             <div class="face-actions">
               <button class="secondary-button compact-button" id="scanCurrent" type="button" disabled>
                 <svg><use href="#icon-face"></use></svg>
-                Scan selected
+                Analisar selecionada
               </button>
               <button class="secondary-button compact-button" id="scanBatch" type="button" disabled>
                 <svg><use href="#icon-face"></use></svg>
-                Scan batch
+                Analisar lote
               </button>
             </div>
-            <div class="mini-status" id="faceStatus">Preparing face protection...</div>
+            <div class="mini-status" id="faceStatus">A preparar proteção de rostos...</div>
           </section>
 
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-image"></use></svg>
-              <h2>Photo</h2>
+              <h2>Fotografia</h2>
             </div>
-            <div class="segmented" role="group" aria-label="Photo fit">
-              <button class="segment active" data-fit="cover" type="button">Cover</button>
-              <button class="segment" data-fit="contain" type="button">Contain</button>
+            <div class="segmented" role="group" aria-label="Ajuste da fotografia">
+              <button class="segment active" data-fit="cover" type="button">Preencher</button>
+              <button class="segment" data-fit="contain" type="button">Conter</button>
             </div>
             <label class="range-field">
               <span>Zoom</span>
@@ -148,163 +149,163 @@
             </label>
             <button class="secondary-button" id="centerPhoto" type="button">
               <svg><use href="#icon-move"></use></svg>
-              Center photo
+              Centrar fotografia
             </button>
           </section>
         </aside>
 
-        <section class="stage" aria-label="Image preview">
+        <section class="stage" aria-label="Pré-visualização da imagem">
           <div class="stage-toolbar">
             <div>
-              <strong id="activePresetName">Instagram Square</strong>
+              <strong id="activePresetName">Instagram Quadrado</strong>
               <span id="activePresetSize">1080 x 1080</span>
-              <em id="activePhotoMeta">No photo selected</em>
+              <em id="activePhotoMeta">Nenhuma fotografia selecionada</em>
             </div>
-            <div class="layer-toggle" role="group" aria-label="Drag layer">
-              <button class="active" data-layer="photo" type="button">Photo</button>
-              <button data-layer="logo" type="button">Logo</button>
+            <div class="layer-toggle" role="group" aria-label="Camada a mover">
+              <button class="active" data-layer="photo" type="button">Fotografia</button>
+              <button data-layer="logo" type="button">Logótipo</button>
             </div>
           </div>
 
           <div class="canvas-frame">
-            <canvas id="previewCanvas" aria-label="Composed social media image preview"></canvas>
+            <canvas id="previewCanvas" aria-label="Pré-visualização da imagem composta"></canvas>
           </div>
 
           <div class="status-line">
-            <span id="statusText">Add a photo to begin.</span>
-            <span id="cursorHint">Drag the selected layer on the preview.</span>
+            <span id="statusText">Adicione uma fotografia para começar.</span>
+            <span id="cursorHint">Arraste a camada selecionada na pré-visualização.</span>
           </div>
         </section>
 
-        <aside class="panel export-panel" aria-label="Logo and export controls">
+        <aside class="panel export-panel" aria-label="Controlos do logótipo e exportação">
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-file"></use></svg>
-              <h2>Frame</h2>
+              <h2>Moldura</h2>
             </div>
             <label class="check-field">
               <input id="frameEnabled" type="checkbox" checked>
-              <span>Use APCM frame when available</span>
+              <span>Usar moldura APCM quando disponível</span>
             </label>
-            <div class="mini-status" id="frameStatus">Loading frames...</div>
+            <div class="mini-status" id="frameStatus">A carregar molduras...</div>
           </section>
 
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-logo"></use></svg>
-              <h2>Logo</h2>
+              <h2>Logótipo</h2>
             </div>
-            <div class="anchor-grid" id="anchorGrid" aria-label="Logo anchor">
-              <button data-anchor="tl" type="button" aria-label="Top left"></button>
-              <button data-anchor="tc" type="button" aria-label="Top center"></button>
-              <button data-anchor="tr" type="button" aria-label="Top right"></button>
-              <button data-anchor="cl" type="button" aria-label="Center left"></button>
-              <button data-anchor="cc" type="button" aria-label="Center"></button>
-              <button data-anchor="cr" type="button" aria-label="Center right"></button>
-              <button data-anchor="bl" type="button" aria-label="Bottom left"></button>
-              <button data-anchor="bc" type="button" aria-label="Bottom center"></button>
-              <button class="active" data-anchor="br" type="button" aria-label="Bottom right"></button>
+            <div class="anchor-grid" id="anchorGrid" aria-label="Posição do logótipo">
+              <button data-anchor="tl" type="button" aria-label="Superior esquerdo"></button>
+              <button data-anchor="tc" type="button" aria-label="Superior centro"></button>
+              <button data-anchor="tr" type="button" aria-label="Superior direito"></button>
+              <button data-anchor="cl" type="button" aria-label="Centro esquerdo"></button>
+              <button data-anchor="cc" type="button" aria-label="Centro"></button>
+              <button data-anchor="cr" type="button" aria-label="Centro direito"></button>
+              <button data-anchor="bl" type="button" aria-label="Inferior esquerdo"></button>
+              <button data-anchor="bc" type="button" aria-label="Inferior centro"></button>
+              <button class="active" data-anchor="br" type="button" aria-label="Inferior direito"></button>
             </div>
             <label class="range-field">
-              <span>Size</span>
+              <span>Tamanho</span>
               <input id="logoSize" type="range" min="5" max="55" step="1" value="18">
               <output id="logoSizeValue">18%</output>
             </label>
             <label class="range-field">
-              <span>Opacity</span>
+              <span>Opacidade</span>
               <input id="logoOpacity" type="range" min="10" max="100" step="1" value="100">
               <output id="logoOpacityValue">100%</output>
             </label>
             <label class="range-field">
-              <span>Rotation</span>
+              <span>Rotação</span>
               <input id="logoRotation" type="range" min="-45" max="45" step="1" value="0">
-              <output id="logoRotationValue">0 deg</output>
+              <output id="logoRotationValue">0°</output>
             </label>
             <button class="secondary-button" id="removeLogo" type="button">
               <svg><use href="#icon-refresh"></use></svg>
-              Clear logo
+              Remover logótipo
             </button>
           </section>
 
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-download"></use></svg>
-              <h2>Export</h2>
+              <h2>Exportar</h2>
             </div>
             <button class="ready-download" id="saveReady" type="button" disabled>
               <svg><use href="#icon-download"></use></svg>
-              <span id="saveReadyName">Upload photos first</span>
+              <span id="saveReadyName">Carregue fotografias primeiro</span>
             </button>
             <div class="format-grid">
               <label>
-                <span>Format</span>
+                <span>Formato</span>
                 <select id="formatSelect">
                   <option value="png">PNG</option>
                   <option value="jpeg">JPEG</option>
                 </select>
               </label>
               <label>
-                <span>Background</span>
+                <span>Fundo</span>
                 <input id="backgroundColor" type="color" value="#ffffff">
               </label>
             </div>
             <label class="check-field">
               <input id="transparentBg" type="checkbox">
-              <span>Transparent PNG background</span>
+              <span>Fundo PNG transparente</span>
             </label>
             <label class="range-field quality-field">
-              <span>Quality</span>
+              <span>Qualidade</span>
               <input id="jpegQuality" type="range" min="60" max="100" step="1" value="92">
               <output id="jpegQualityValue">92%</output>
             </label>
             <button class="primary-button" id="downloadCurrent" type="button" disabled>
               <svg><use href="#icon-download"></use></svg>
-              Download selected size
+              Transferir formato selecionado
             </button>
             <div class="folder-export">
               <div class="folder-export-title">
                 <svg><use href="#icon-folder"></use></svg>
-                <strong>Batch save</strong>
-                <span>ZIP backup</span>
+                <strong>Guardar lote</strong>
+                <span>Cópia ZIP</span>
               </div>
               <button class="primary-button" id="exportFolderCurrent" type="button" disabled>
                 <svg><use href="#icon-folder"></use></svg>
-                Save batch current size
+                Guardar lote neste formato
               </button>
               <button class="secondary-button" id="exportFolderAll" type="button" disabled>
                 <svg><use href="#icon-folder"></use></svg>
-                Save batch all sizes
+                Guardar lote em todos os formatos
               </button>
               <button class="secondary-button" id="openExportFolder" type="button" hidden>
                 <svg><use href="#icon-folder"></use></svg>
-                Open exported folder
+                Abrir pasta exportada
               </button>
-              <div class="mini-status" id="folderExportStatus">Connecting to local folder...</div>
+              <div class="mini-status" id="folderExportStatus">A ligar à pasta local...</div>
             </div>
             <button class="secondary-button" id="downloadAll" type="button" disabled>
               <svg><use href="#icon-download"></use></svg>
-              ZIP selected all sizes
+              ZIP da selecionada em todos os formatos
             </button>
             <button class="secondary-button" id="downloadBatchCurrent" type="button" disabled>
               <svg><use href="#icon-download"></use></svg>
-              ZIP batch current size
+              ZIP do lote neste formato
             </button>
             <button class="secondary-button" id="downloadBatchAll" type="button" disabled>
               <svg><use href="#icon-download"></use></svg>
-              ZIP batch all sizes
+              ZIP do lote em todos os formatos
             </button>
             <div class="video-export">
               <div class="video-export-title">
                 <svg><use href="#icon-video"></use></svg>
-                <strong>Video MP4</strong>
+                <strong>Vídeo MP4</strong>
                 <span id="videoExportSize">4:5 / 1080x1350</span>
               </div>
               <div class="video-format-field">
-                <span>Video size</span>
-                <div class="video-format-segmented" role="group" aria-label="Video size">
+                <span>Formato do vídeo</span>
+                <div class="video-format-segmented" role="group" aria-label="Formato do vídeo">
                   <button class="video-format-button active" data-video-preset="instagram-portrait" type="button" aria-pressed="true">
                     <strong>4:5</strong>
-                    <span>Portrait</span>
+                    <span>Retrato</span>
                   </button>
                   <button class="video-format-button" data-video-preset="story-reel" type="button" aria-pressed="false">
                     <strong>9:16</strong>
@@ -312,56 +313,56 @@
                   </button>
                   <button class="video-format-button" data-video-preset="apcm-16x9" type="button" aria-pressed="false">
                     <strong>16:9</strong>
-                    <span>Landscape</span>
+                    <span>Paisagem</span>
                   </button>
                 </div>
               </div>
               <div class="video-grid">
                 <label>
-                  <span>Transition</span>
+                  <span>Transição</span>
                   <select id="videoTransition">
-                    <option value="fade">Crossfade</option>
-                    <option value="slide">Slide</option>
-                    <option value="zoom">Zoom fade</option>
+                    <option value="fade">Dissolver</option>
+                    <option value="slide">Deslizar</option>
+                    <option value="zoom">Zoom e dissolver</option>
                   </select>
                 </label>
                 <label>
-                  <span>Photo time</span>
+                  <span>Tempo por fotografia</span>
                   <select id="videoPhotoDuration">
-                    <option value="1.5">1.5 sec</option>
-                    <option value="2" selected>2 sec</option>
-                    <option value="3">3 sec</option>
-                    <option value="4">4 sec</option>
+                    <option value="1.5">1,5 s</option>
+                    <option value="2" selected>2 s</option>
+                    <option value="3">3 s</option>
+                    <option value="4">4 s</option>
                   </select>
                 </label>
                 <label>
-                  <span>Transition time</span>
+                  <span>Duração da transição</span>
                   <select id="videoTransitionDuration">
-                    <option value="0.4">0.4 sec</option>
-                    <option value="0.6" selected>0.6 sec</option>
-                    <option value="1">1 sec</option>
+                    <option value="0.4">0,4 s</option>
+                    <option value="0.6" selected>0,6 s</option>
+                    <option value="1">1 s</option>
                   </select>
                 </label>
               </div>
               <button class="primary-button" id="exportVideo" type="button" disabled>
                 <svg><use href="#icon-video"></use></svg>
-                <span id="videoExportButtonText">Export 4:5 MP4</span>
+                <span id="videoExportButtonText">Exportar MP4 4:5</span>
               </button>
               <button class="secondary-button" id="cancelVideo" type="button" hidden>
                 <svg><use href="#icon-x"></use></svg>
-                Cancel video
+                Cancelar vídeo
               </button>
               <progress id="videoProgress" max="100" value="0" hidden></progress>
-              <div class="mini-status" id="videoStatus">Checking MP4 support...</div>
+              <div class="mini-status" id="videoStatus">A verificar suporte para MP4...</div>
             </div>
           </section>
         </aside>
       </div>
     </main>
 
-    <script src="vendor/tracking/tracking-min.js"></script>
-    <script src="vendor/tracking/data/face-min.js"></script>
-    <script src="vendor/mp4-muxer/mp4-muxer.js"></script>
+    <script src="../vendor/tracking/tracking-min.js"></script>
+    <script src="../vendor/tracking/data/face-min.js"></script>
+    <script src="../vendor/mp4-muxer/mp4-muxer.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

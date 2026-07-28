@@ -111,7 +111,8 @@ function openExportFolder(response, session) {
 }
 
 async function serveStatic(request, response, url) {
-  const relative = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname).replace(/^\/+/, "");
+  const pathname = url.pathname.endsWith("/") ? `${url.pathname}index.html` : url.pathname;
+  const relative = decodeURIComponent(pathname).replace(/^\/+/, "");
   const file = normalize(join(root, relative));
   if (!isInside(root, file)) {
     response.writeHead(403).end("Forbidden");
