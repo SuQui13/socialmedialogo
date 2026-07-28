@@ -1,6 +1,6 @@
 # Exportador de Fotos para Redes Sociais
 
-Versão portuguesa da aplicação para carregar até 150 fotografias, aplicar um logótipo ou uma moldura APCM e exportar imagens e vídeos nos formatos das redes sociais.
+Versão em português europeu (`pt-PT`) da aplicação para carregar até 150 fotografias, aplicar um logótipo ou uma moldura APCM e exportar imagens e vídeos nos formatos das redes sociais.
 
 Criado por Susana Quintal.
 
