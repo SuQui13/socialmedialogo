@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="language" content="pt-PT">
     <meta name="author" content="Susana Quintal">
+    <meta name="theme-color" content="#4a2f58">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Exportador de Fotografias para Redes Sociais | Susana Quintal</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="../icons/app-icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="../icons/app-icon-180.png">
     <link rel="stylesheet" href="../styles.css">
   </head>
   <body>
@@ -54,14 +60,32 @@
         </div>
         <div class="topbar-actions">
           <a class="language-link" href="../" lang="en">English</a>
+          <button class="icon-button" id="installApp" type="button" aria-label="Instalar aplicação" title="Instalar aplicação" hidden>
+            <svg><use href="#icon-download"></use></svg>
+          </button>
           <button class="icon-button" id="resetAll" type="button" aria-label="Repor aplicação" title="Repor aplicação">
             <svg><use href="#icon-refresh"></use></svg>
           </button>
         </div>
       </header>
 
-      <div class="workspace">
-        <aside class="panel controls-panel" aria-label="Controlos do editor">
+      <nav class="mobile-nav" aria-label="Área de trabalho móvel" role="tablist">
+        <button class="active" data-mobile-view="edit" type="button" role="tab" aria-selected="true" aria-controls="editorPanel">
+          <svg><use href="#icon-crop"></use></svg>
+          <span>Editar</span>
+        </button>
+        <button data-mobile-view="preview" type="button" role="tab" aria-selected="false" aria-controls="previewPanel" tabindex="-1">
+          <svg><use href="#icon-image"></use></svg>
+          <span>Pré-visualizar</span>
+        </button>
+        <button data-mobile-view="export" type="button" role="tab" aria-selected="false" aria-controls="exportPanel" tabindex="-1">
+          <svg><use href="#icon-download"></use></svg>
+          <span>Exportar</span>
+        </button>
+      </nav>
+
+      <div class="workspace" data-mobile-view="edit">
+        <aside class="panel controls-panel" id="editorPanel" aria-label="Controlos do editor">
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-file"></use></svg>
@@ -156,7 +180,7 @@
           </section>
         </aside>
 
-        <section class="stage" aria-label="Pré-visualização da imagem">
+        <section class="stage" id="previewPanel" aria-label="Pré-visualização da imagem">
           <div class="stage-toolbar">
             <div>
               <strong id="activePresetName">Instagram Quadrado</strong>
@@ -179,7 +203,7 @@
           </div>
         </section>
 
-        <aside class="panel export-panel" aria-label="Controlos do logótipo e exportação">
+        <aside class="panel export-panel" id="exportPanel" aria-label="Controlos do logótipo e exportação">
           <section class="control-group">
             <div class="group-title">
               <svg><use href="#icon-file"></use></svg>
@@ -365,6 +389,7 @@
     <script src="../vendor/tracking/tracking-min.js"></script>
     <script src="../vendor/tracking/data/face-min.js"></script>
     <script src="../vendor/mp4-muxer/mp4-muxer.js"></script>
+    <script src="../pwa.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

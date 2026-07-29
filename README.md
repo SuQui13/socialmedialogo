@@ -4,6 +4,12 @@ A small local browser app for uploading up to 150 photos, applying a logo, and e
 
 European Portuguese edition (`pt-PT`): open `http://127.0.0.1:8765/pt/` locally or visit `https://suqui13.github.io/socialmedialogo/pt/`. The Portuguese edition is attributed to Susana Quintal.
 
+## Mobile
+
+The public app works in mobile browsers and can be installed on a phone's home screen. On supported Android browsers, use the install button when it appears. On iPhone or iPad, use Safari's Add to Home Screen action. After the first successful visit, the editor shell, APCM frames, face detector, and export tools remain available offline.
+
+Mobile navigation separates the editor, preview, and export controls into three touch-friendly views. Photos still stay on the device and are processed in the browser.
+
 ## Open
 
 Double-click `START-APP.cmd`. The app opens at `http://127.0.0.1:8765/` and enables reliable direct-to-folder batch exports.

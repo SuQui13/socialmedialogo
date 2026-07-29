@@ -68,6 +68,8 @@ const state = {
 };
 
 const els = {
+  workspace: document.querySelector(".workspace"),
+  mobileViewButtons: Array.from(document.querySelectorAll(".mobile-nav [data-mobile-view]")),
   presetList: document.querySelector("#presetList"),
   canvas: document.querySelector("#previewCanvas"),
   photoInput: document.querySelector("#photoInput"),
@@ -168,6 +170,21 @@ function formatBytes(bytes) {
 
 function setStatus(message) {
   els.statusText.textContent = message;
+}
+
+function setMobileView(view) {
+  const activeButton = els.mobileViewButtons.find((button) => button.dataset.mobileView === view);
+  if (!els.workspace || !activeButton) return;
+
+  els.workspace.dataset.mobileView = view;
+  els.mobileViewButtons.forEach((button) => {
+    const active = button === activeButton;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+
+  if (view === "preview") requestAnimationFrame(renderPreview);
 }
 
 function setFaceStatus(message) {
@@ -1850,6 +1867,7 @@ function resetAll() {
   els.logoInput.value = "";
   els.logoName.textContent = "Choose image";
   setStatus("Add photos to begin.");
+  setMobileView("edit");
   syncControls();
   renderPreview();
   setupVideoEncoder();
@@ -1858,6 +1876,22 @@ function resetAll() {
 function bindEvents() {
   els.photoInput.addEventListener("change", (event) => loadPhotoBatch(event.target.files));
   els.logoInput.addEventListener("change", (event) => loadLogo(event.target.files[0]));
+
+  els.mobileViewButtons.forEach((button, index) => {
+    button.addEventListener("click", () => setMobileView(button.dataset.mobileView));
+    button.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      let nextIndex = index;
+      if (event.key === "ArrowLeft") nextIndex = (index - 1 + els.mobileViewButtons.length) % els.mobileViewButtons.length;
+      if (event.key === "ArrowRight") nextIndex = (index + 1) % els.mobileViewButtons.length;
+      if (event.key === "Home") nextIndex = 0;
+      if (event.key === "End") nextIndex = els.mobileViewButtons.length - 1;
+      const nextButton = els.mobileViewButtons[nextIndex];
+      setMobileView(nextButton.dataset.mobileView);
+      nextButton.focus();
+    });
+  });
 
   els.frameEnabled.addEventListener("change", () => {
     state.frameEnabled = els.frameEnabled.checked;
@@ -2035,6 +2069,7 @@ function bindEvents() {
 
 buildPresets();
 bindEvents();
+setMobileView("edit");
 renderPhotoList();
 syncControls();
 renderPreview();
